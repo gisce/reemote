@@ -14,12 +14,16 @@ using Daiza.Com.Datetime;
 
 namespace GISCE
 {
+
     class REEMote
     {
         static void Main(string[] args)
-        {            
-			String LicenseMachine = "KzkV6wsWRp8jsdnTPhNwxkkDivQiSw6R0J1HnFohTgoqlcrb1GwB/8fm23SviE37Hy6vMtrA+FeEoi3Yd8FRdCWjdluAFJz8FtbcrQKPeoI=";
-			String LicensePackage = "Njgcnp9o7aFRwX51VTopp5V80saPxkUjvbL0XXAIonWfnsr7A0U9DBjpuh8CvB44QrfVVvlUktk9AxLp+5TwHWxb1sSzbLltGYBt3s1vL6Lel6MkWWLTxsdi8M63UPSj";
+        {
+			String LicenseMachine = Environment.GetEnvironmentVariable("DAIZACOM_LICENSE_MACHINE");
+			String LicensePackage = Environment.GetEnvironmentVariable("DAIZACOM_LICENSE_PACKAGE");
+
+			Console.WriteLine (LicenseMachine);
+			Console.WriteLine (LicensePackage);
 
             CProtocolIEC870REE ProtocolIEC870REE = null;
 
