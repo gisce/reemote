@@ -19,6 +19,12 @@ namespace GISCE
     {
         static void Main(string[] args)
         {
+            if (args.Length != 7)
+            {
+                System.Console.WriteLine("Please enter all required arguments.");
+                System.Console.WriteLine("Arguments: IP Port LinkAddress MeasuringPointAddress Password DateFrom DateTo");
+            }
+
 			String LicenseMachine = Environment.GetEnvironmentVariable("DAIZACOM_LICENSE_MACHINE");
 			String LicensePackage = Environment.GetEnvironmentVariable("DAIZACOM_LICENSE_PACKAGE");
 
@@ -60,16 +66,23 @@ namespace GISCE
                 //PortConfigGSM.ConnectionTimeout = 60000;
                 //PortConfigGSM.DisconnectionTimeout = 5000;                
 
+                int port, pass;
+                short link_addr, mpoint_addr;
+                int.TryParse(args[1], out port);
+                short.TryParse(args[2], out link_addr);
+                short.TryParse(args[3], out mpoint_addr);
+                int.TryParse(args[4], out pass);
+
                 CPortConfigTCPIP PortConfigTCPIP = new CPortConfigTCPIP();
-                PortConfigTCPIP.IPAddress = "95.124.247.201";
-                PortConfigTCPIP.IPPort = 20000;
+                PortConfigTCPIP.IPAddress = args[0];
+                PortConfigTCPIP.IPPort = port;
                 PortConfigTCPIP.Timeout = 2000;
                 ProtocolIEC870REE.SetPortConfig(PortConfigTCPIP);
 
                 CProtocolIEC870REEConnection ProtocolIEC870REEConnection = new CProtocolIEC870REEConnection();
-                ProtocolIEC870REEConnection.LinkAddress = 1;
-                ProtocolIEC870REEConnection.MeasuringPointAddress = 1;
-                ProtocolIEC870REEConnection.Password = 1;
+                ProtocolIEC870REEConnection.LinkAddress = link_addr;
+                ProtocolIEC870REEConnection.MeasuringPointAddress = mpoint_addr;
+                ProtocolIEC870REEConnection.Password = pass;
                 ProtocolIEC870REEConnection.OpenSessionRetries = 1;
                 ProtocolIEC870REEConnection.OpenSessionTimeout = 2000;
                 ProtocolIEC870REEConnection.MacLayerRetries = 1;
@@ -77,12 +90,18 @@ namespace GISCE
 
                 ProtocolIEC870REE.SetConnectionConfig(ProtocolIEC870REEConnection);
 
-                CTimeInfo DateFrom = new CTimeInfo(2017, 10, 1, 1, 0, 0, 0);
-                CTimeInfo DateTo = new CTimeInfo(2017, 11, 3, 0, 0, 0, 0);                
+                char[] delimiterChars = { ' ', ',', '.', ':', ';', '-', 'T' };
+                string[] date_from = args[5].Split(delimiterChars);
+                string[] date_to = args[6].Split(delimiterChars);
+
+                CTimeInfo DateFrom = new CTimeInfo(short.Parse(date_from[0]), byte.Parse(date_from[1]), byte.Parse(date_from[2]),
+                byte.Parse(date_from[3]), byte.Parse(date_from[4]), byte.Parse(date_from[5]), short.Parse(date_from[6]));
+                CTimeInfo DateTo = new CTimeInfo(short.Parse(date_to[0]), byte.Parse(date_to[1]), byte.Parse(date_to[2]),
+                byte.Parse(date_to[3]), byte.Parse(date_to[4]), byte.Parse(date_to[5]), short.Parse(date_to[6]));
 
                 ProtocolIEC870REE.OpenPort();
                 ProtocolIEC870REE.OpenSession();
-                               
+
                 CTotals Totals = ProtocolIEC870REE.ReadTotalsHistory(1, DateFrom, DateTo);
 
                 foreach (CTotal Total in Totals.Totals)
