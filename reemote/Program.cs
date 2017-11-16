@@ -77,24 +77,20 @@ namespace GISCE
 
                 ProtocolIEC870REE.SetConnectionConfig(ProtocolIEC870REEConnection);
 
-                CTimeInfo DateFrom = new CTimeInfo(2017, 10, 1, 1, 0, 0, 0);
-                CTimeInfo DateTo = new CTimeInfo(2017, 11, 3, 0, 0, 0, 0);                
-
                 ProtocolIEC870REE.OpenPort();
                 ProtocolIEC870REE.OpenSession();
-                               
+
+                CTimeInfo DateFrom = new CTimeInfo(2017, 10, 1, 1, 0, 0, 0);
+                CTimeInfo DateTo = new CTimeInfo(2017, 11, 3, 0, 0, 0, 0);
                 CTotals Totals = ProtocolIEC870REE.ReadTotalsHistory(1, DateFrom, DateTo);
+                PersonalizedTotals PTotals = new PersonalizedTotals(Totals);
 
-                foreach (CTotal Total in Totals.Totals)
-                {
-                    
-                    Console.WriteLine(String.Format("Periodo A {0:d} - {1:d}: [tarifa {2}] = {3}", Total.PeriodStart.ToString() , Total.PeriodEnd.ToString(), Total.Tariff, Total.ActiveEnergyAbs));
-                    Console.WriteLine(String.Format("Periodo R {0:d} - {1:d}: [tarifa {2}] = {3}", Total.PeriodStart.ToString() , Total.PeriodEnd.ToString(), Total.Tariff, Total.ReactiveInductiveEnergyAbs));
-                }                                               
-                
+                var json = new JavaScriptSerializer().Serialize(PTotals);
+                Console.WriteLine(json);
+
                 ProtocolIEC870REE.CloseSession();
-
                 ProtocolIEC870REE.ClosePort();
+
                 Environment.Exit(0);
             }
             catch (LICENSE_RESULT elr)
