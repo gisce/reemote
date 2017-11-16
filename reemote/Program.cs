@@ -11,10 +11,10 @@ using Daiza.Com.Protocol_IEC870REE.Meter;
 using Daiza.Com.Protocol_IEC870REE.Readouts;
 using System.Diagnostics;
 using Daiza.Com.Datetime;
+using System.Web.Script.Serialization;
 
 namespace GISCE
 {
-
     class REEMote
     {
         static void Main(string[] args)
