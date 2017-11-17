@@ -92,14 +92,13 @@ namespace GISCE
 
                 ProtocolIEC870REE.SetConnectionConfig(ProtocolIEC870REEConnection);
 
-                char[] delimiterChars = { ' ', ',', '.', ':', ';', '-', 'T' };
-                string[] date_from = args[5].Split(delimiterChars);
-                string[] date_to = args[6].Split(delimiterChars);
+                DateTime DateFromArg = DateTime.Parse(args[5]);
+                DateTime DateToArg = DateTime.Parse(args[6]);
 
-                CTimeInfo DateFrom = new CTimeInfo(short.Parse(date_from[0]), byte.Parse(date_from[1]), byte.Parse(date_from[2]),
-                byte.Parse(date_from[3]), byte.Parse(date_from[4]), byte.Parse(date_from[5]), short.Parse(date_from[6]));
-                CTimeInfo DateTo = new CTimeInfo(short.Parse(date_to[0]), byte.Parse(date_to[1]), byte.Parse(date_to[2]),
-                byte.Parse(date_to[3]), byte.Parse(date_to[4]), byte.Parse(date_to[5]), short.Parse(date_to[6]));
+                CTimeInfo DateFrom = new CTimeInfo((short)DateFromArg.Year, (byte)DateFromArg.Month, (byte)DateFromArg.Day,
+                (byte)DateFromArg.Hour, (byte)DateFromArg.Minute, (byte)DateFromArg.Second, (short)DateFromArg.Millisecond);
+                CTimeInfo DateTo = new CTimeInfo((short)DateToArg.Year, (byte)DateToArg.Month, (byte)DateToArg.Day,
+                (byte)DateToArg.Hour, (byte)DateToArg.Minute, (byte)DateToArg.Second, (short)DateToArg.Millisecond);
 
                 ProtocolIEC870REE.OpenPort();
                 ProtocolIEC870REE.OpenSession();
