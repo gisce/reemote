@@ -129,12 +129,29 @@ namespace GISCE
                 Console.WriteLine("And export using the environment vars: DAIZACOM_LICENSE_MACHINE and DAIZACOM_LICENSE_PACKAGE");
                 Environment.Exit(1);
             }
+            catch (PROTOCOL_IEC870REE_RESULT ex)
+            {
+                Console.WriteLine(ex.Message);
+
+                if (ProtocolIEC870REE != null)
+                {
+                    CSniffer oSniffer = ProtocolIEC870REE.GetSniffer();
+                    foreach (CAction Action in oSniffer.ActionsQueue)
+                    {
+                        Console.WriteLine(Action.Description);
+                        Console.WriteLine(Action.TimeInfo.ToString());
+                        Console.WriteLine(Action.Data);
+                    }
+                    ProtocolIEC870REE.CloseSession();
+                    ProtocolIEC870REE.ClosePort();
+                }
+            }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
                 Environment.Exit(1);
-            }            
-        }        
+            }
+        }
     }
 
     public class PersonalizedTotals
