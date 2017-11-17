@@ -17,12 +17,19 @@ namespace GISCE
 {
     class REEMote
     {
+        static String GetVersion()
+        {
+            System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+            return fvi.FileVersion;
+        }
         static void Main(string[] args)
         {
             if (args.Length != 7)
             {
-                System.Console.WriteLine("Please enter all required arguments.");
-                System.Console.WriteLine("Arguments: IP Port LinkAddress MeasuringPointAddress Password DateFrom DateTo");
+                Console.WriteLine("REEMote version: {0}", REEMote.GetVersion());
+                Console.WriteLine("Please enter all required arguments.");
+                Console.WriteLine("Arguments: IP Port LinkAddress MeasuringPointAddress Password DateFrom DateTo");
             }
 
 			String LicenseMachine = Environment.GetEnvironmentVariable("DAIZACOM_LICENSE_MACHINE");
@@ -32,13 +39,6 @@ namespace GISCE
 			Console.WriteLine (LicensePackage);
 
             CProtocolIEC870REE ProtocolIEC870REE = null;
-
-            Console.WriteLine("Getting interfaces....");
-            NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
-            foreach (NetworkInterface adapter in nics)
-            {
-                Console.WriteLine("Physical address: {0}", adapter.GetPhysicalAddress().ToString());
-            }
 
             try
             {
@@ -115,7 +115,18 @@ namespace GISCE
             }
             catch (LICENSE_RESULT elr)
             {
-                Console.WriteLine(elr.Message);                
+                Console.WriteLine(elr.Message);
+                Console.WriteLine("You should get a valid LICENSE for one of the following MAC addresses:");
+                NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
+                foreach (NetworkInterface adapter in nics)
+                {
+                    String macAddress = adapter.GetPhysicalAddress().ToString();
+                    if (macAddress != "")
+                    {
+                        Console.WriteLine("  Physical address: {0}", macAddress);
+                    }
+                }
+                Console.WriteLine("And export using the environment vars: DAIZACOM_LICENSE_MACHINE and DAIZACOM_LICENSE_PACKAGE");
                 Environment.Exit(1);
             }
             catch (Exception ex)
