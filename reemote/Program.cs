@@ -40,14 +40,13 @@ namespace GISCE
 
             }
 
-			String LicenseMachine = Environment.GetEnvironmentVariable("DAIZACOM_LICENSE_MACHINE");
-			String LicensePackage = Environment.GetEnvironmentVariable("DAIZACOM_LICENSE_PACKAGE");
-
             CProtocolIEC870REE ProtocolIEC870REE = null;
 
             try
             {
-				ProtocolIEC870REE = new CProtocolIEC870REE(LicenseMachine, LicensePackage);
+                String LicensePackage = Environment.GetEnvironmentVariable("DAIZACOM_LICENSE_PACKAGE");
+                String LicenseMachine = Environment.GetEnvironmentVariable("DAIZACOM_LICENSE_MACHINE");
+                ProtocolIEC870REE = new CProtocolIEC870REE(LicenseMachine, LicensePackage);
 
                 // CPortConfigRS232 PortConfigRS232 = new CPortConfigRS232();
                 // PortConfigRS232.Name = "COM3";
@@ -106,11 +105,11 @@ namespace GISCE
                 CTotals Totals = ProtocolIEC870REE.ReadTotalsHistory(1, DateFrom, DateTo);
                 PersonalizedTotals PTotals = new PersonalizedTotals(Totals);
 
-                var json = new JavaScriptSerializer().Serialize(PTotals);
-                Console.WriteLine(json);
-
                 ProtocolIEC870REE.CloseSession();
                 ProtocolIEC870REE.ClosePort();
+
+                var json = new JavaScriptSerializer().Serialize(PTotals);
+                Console.WriteLine(json);
 
                 Environment.Exit(0);
             }
@@ -130,12 +129,29 @@ namespace GISCE
                 Console.WriteLine("And export using the environment vars: DAIZACOM_LICENSE_MACHINE and DAIZACOM_LICENSE_PACKAGE");
                 Environment.Exit(1);
             }
+            catch (PROTOCOL_IEC870REE_RESULT ex)
+            {
+                Console.WriteLine(ex.Message);
+
+                if (ProtocolIEC870REE != null)
+                {
+                    CSniffer oSniffer = ProtocolIEC870REE.GetSniffer();
+                    foreach (CAction Action in oSniffer.ActionsQueue)
+                    {
+                        Console.WriteLine(Action.Description);
+                        Console.WriteLine(Action.TimeInfo.ToString());
+                        Console.WriteLine(Action.Data);
+                    }
+                    ProtocolIEC870REE.CloseSession();
+                    ProtocolIEC870REE.ClosePort();
+                }
+            }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
                 Environment.Exit(1);
-            }            
-        }        
+            }
+        }
     }
 
     public class PersonalizedTotals
