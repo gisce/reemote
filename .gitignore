@@ -305,3 +305,4 @@ __pycache__/
 OpenCover/
 
 *.dll
+.vscode/
