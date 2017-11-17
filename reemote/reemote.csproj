@@ -37,6 +37,7 @@
     <Reference Include="System.Web.Extensions"/>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PersonalizedTotals.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
