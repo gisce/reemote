@@ -23,6 +23,13 @@ namespace GISCE
             FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
             return fvi.FileVersion;
         }
+
+        static void PrintLicenceInfo(CProtocolIEC870REE Protocol)
+        {
+                Console.WriteLine("==== LICENSE INFO =====");
+				Console.WriteLine(Protocol.GetLicenseInfo());
+        }
+
         static void Main(string[] args)
         {
             if (args.Length != 7)
@@ -30,22 +37,17 @@ namespace GISCE
                 Console.WriteLine("REEMote version: {0}", REEMote.GetVersion());
                 Console.WriteLine("Please enter all required arguments.");
                 Console.WriteLine("Arguments: IP Port LinkAddress MeasuringPointAddress Password DateFrom DateTo");
+
             }
 
 			String LicenseMachine = Environment.GetEnvironmentVariable("DAIZACOM_LICENSE_MACHINE");
 			String LicensePackage = Environment.GetEnvironmentVariable("DAIZACOM_LICENSE_PACKAGE");
-
-			Console.WriteLine (LicenseMachine);
-			Console.WriteLine (LicensePackage);
 
             CProtocolIEC870REE ProtocolIEC870REE = null;
 
             try
             {
 				ProtocolIEC870REE = new CProtocolIEC870REE(LicenseMachine, LicensePackage);
-
-                Console.WriteLine("==== LICENSE INFO =====");
-				Console.WriteLine(ProtocolIEC870REE.GetLicenseInfo());
 
                 // CPortConfigRS232 PortConfigRS232 = new CPortConfigRS232();
                 // PortConfigRS232.Name = "COM3";
