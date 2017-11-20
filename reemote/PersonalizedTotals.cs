@@ -1,5 +1,7 @@
+using System;
 using Daiza.Com.Protocol_IEC870REE.Readouts;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace GISCE.Net.Readings {
     public class PersonalizedTotals
@@ -11,8 +13,8 @@ namespace GISCE.Net.Readings {
         public PersonalizedTotals(CTotals totals)
         {
             Contract = totals.Contract;
-            DateFrom = totals.DateFrom.ToString();
-            DateTo   = totals.DateTo.ToString();
+            DateFrom = DateTime.ParseExact(totals.DateFrom.ToString(), "yyyy/M/d H:m:s.f", CultureInfo.InvariantCulture).ToString("yyyy-MM-dd HH:mm:ss");
+            DateTo   = DateTime.ParseExact(totals.DateTo.ToString(), "yyyy/M/d H:m:s.f", CultureInfo.InvariantCulture).ToString("yyyy-MM-dd HH:mm:ss");
             Totals = new List<PersonalizedTotal>();
             foreach (CTotal total in totals.Totals)
             {
@@ -47,8 +49,8 @@ namespace GISCE.Net.Readings {
         public PersonalizedTotal(CTotal total)
         {
             Tariff = total.Tariff;
-            PeriodStart = total.PeriodStart.ToString();
-            PeriodEnd = total.PeriodEnd.ToString();
+            PeriodStart = DateTime.ParseExact(total.PeriodStart.ToString(), "yyyy/M/d H:m:s.f", CultureInfo.InvariantCulture).ToString("yyyy-MM-dd HH:mm:ss");
+            PeriodEnd = DateTime.ParseExact(total.PeriodEnd.ToString(), "yyyy/M/d H:m:s.f", CultureInfo.InvariantCulture).ToString("yyyy-MM-dd HH:mm:ss");
             ActiveEnergyAbs = total.ActiveEnergyAbs;
             ActiveEnergyInc = total.ActiveEnergyInc;
             QualityActiveEnergy = total.QualityActiveEnergy;
@@ -64,7 +66,7 @@ namespace GISCE.Net.Readings {
             QualityReservedField8 = total.QualityReservedField8;
             MaximumDemand = total.MaximumDemand;
             QualityMaximumDemand = total.QualityMaximumDemand;
-            MaximumDemandTimeStamp = total.MaximumDemandTimeStamp.ToString();
+            MaximumDemandTimeStamp = DateTime.ParseExact(total.MaximumDemandTimeStamp.ToString(), "yyyy/M/d H:m:s.f", CultureInfo.InvariantCulture).ToString("yyyy-MM-dd HH:mm:ss");
             Excess = total.Excess;
             QualityExcess = total.QualityExcess;
         }
