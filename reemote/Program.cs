@@ -35,7 +35,7 @@ namespace GISCE.Net
 
         static void Main(string[] args)
         {
-            if (args.Length != 7)
+            if (args.Length != 8)
             {
                 Console.WriteLine("REEMote version: {0}", REEMote.GetVersion());
                 Console.WriteLine("Please enter all required arguments.");
@@ -105,13 +105,21 @@ namespace GISCE.Net
                 ProtocolIEC870REE.OpenPort();
                 ProtocolIEC870REE.OpenSession();
 
-                // Get billings
-                CTotals Totals = ProtocolIEC870REE.ReadTotalsHistory(1, DateFrom, DateTo);
-                PersonalizedTotals PTotals = new PersonalizedTotals(Totals);
-
-                // Get profiles
-                CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(3, 1, false, DateFrom, DateTo);
-                PersonalizedProfiles PProfiles = new PersonalizedProfiles(Profiles);
+                var json_result = "No result generated!";
+                if (args[7] == "billings")
+                {
+                    // Get billings
+                    CTotals Totals = ProtocolIEC870REE.ReadTotalsHistory(1, DateFrom, DateTo);
+                    PersonalizedTotals Result = new PersonalizedTotals(Totals);
+                    json_result = new JavaScriptSerializer().Serialize(Result);
+                }
+                else if (args[7] == "profiles")
+                {
+                    // Get profiles
+                    CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(3, 1, false, DateFrom, DateTo);
+                    PersonalizedProfiles Result = new PersonalizedProfiles(Profiles);
+                    json_result = new JavaScriptSerializer().Serialize(Result);
+                }
 
                 try {
                     ProtocolIEC870REE.CloseSession();
@@ -121,10 +129,7 @@ namespace GISCE.Net
                 }
                 ProtocolIEC870REE.ClosePort();
 
-                var json_totals = new JavaScriptSerializer().Serialize(PTotals);
-                Console.WriteLine(json_totals);
-                var json_profiles = new JavaScriptSerializer().Serialize(PProfiles);
-                Console.WriteLine(json_profiles);
+                Console.WriteLine(json_result);
 
                 Environment.Exit(0);
             }
