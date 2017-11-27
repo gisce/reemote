@@ -85,9 +85,9 @@ namespace GISCE.Net
                 ProtocolIEC870REEConnection.LinkAddress = link_addr;
                 ProtocolIEC870REEConnection.MeasuringPointAddress = mpoint_addr;
                 ProtocolIEC870REEConnection.Password = pass;
-                ProtocolIEC870REEConnection.OpenSessionRetries = 1;
+                ProtocolIEC870REEConnection.OpenSessionRetries = 5;
                 ProtocolIEC870REEConnection.OpenSessionTimeout = 2000;
-                ProtocolIEC870REEConnection.MacLayerRetries = 1;
+                ProtocolIEC870REEConnection.MacLayerRetries = 3;
                 ProtocolIEC870REEConnection.MacLayerRetriesDelay = 1000;
 
                 ProtocolIEC870REE.SetConnectionConfig(ProtocolIEC870REEConnection);
@@ -106,7 +106,12 @@ namespace GISCE.Net
                 CTotals Totals = ProtocolIEC870REE.ReadTotalsHistory(1, DateFrom, DateTo);
                 PersonalizedTotals PTotals = new PersonalizedTotals(Totals);
 
-                ProtocolIEC870REE.CloseSession();
+                try {
+                    ProtocolIEC870REE.CloseSession();
+                }
+                catch (PROTOCOL_IEC870REE_RESULT) {
+
+                }
                 ProtocolIEC870REE.ClosePort();
 
                 var json = new JavaScriptSerializer().Serialize(PTotals);
