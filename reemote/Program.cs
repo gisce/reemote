@@ -13,6 +13,8 @@ using System.Diagnostics;
 using Daiza.Com.Datetime;
 using System.Web.Script.Serialization;
 using GISCE.Net.Readings;
+using GISCE.Net.Profiles;
+
 
 namespace GISCE.Net
 {
@@ -103,8 +105,13 @@ namespace GISCE.Net
                 ProtocolIEC870REE.OpenPort();
                 ProtocolIEC870REE.OpenSession();
 
+                // Get billings
                 CTotals Totals = ProtocolIEC870REE.ReadTotalsHistory(1, DateFrom, DateTo);
                 PersonalizedTotals PTotals = new PersonalizedTotals(Totals);
+
+                // Get profiles
+                CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(3, 1, false, DateFrom, DateTo);
+                PersonalizedProfiles PProfiles = new PersonalizedProfiles(Profiles);
 
                 try {
                     ProtocolIEC870REE.CloseSession();
@@ -114,8 +121,10 @@ namespace GISCE.Net
                 }
                 ProtocolIEC870REE.ClosePort();
 
-                var json = new JavaScriptSerializer().Serialize(PTotals);
-                Console.WriteLine(json);
+                var json_totals = new JavaScriptSerializer().Serialize(PTotals);
+                Console.WriteLine(json_totals);
+                var json_profiles = new JavaScriptSerializer().Serialize(PProfiles);
+                Console.WriteLine(json_profiles);
 
                 Environment.Exit(0);
             }
