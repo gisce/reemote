@@ -27,8 +27,8 @@ namespace GISCE.Net
 
         static void PrintLicenceInfo(CProtocolIEC870REE Protocol)
         {
-                Console.WriteLine("==== LICENSE INFO =====");
-				Console.WriteLine(Protocol.GetLicenseInfo());
+            Console.WriteLine("==== LICENSE INFO =====");
+            Console.WriteLine(Protocol.GetLicenseInfo());
         }
 
         static void Main(string[] args)
