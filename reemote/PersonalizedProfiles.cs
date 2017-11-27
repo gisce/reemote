@@ -58,13 +58,15 @@ namespace GISCE.Net.Profiles {
 
     public class PersonalizedProfiles
     {
+        public string SerialNumber;
         public byte Number;
         public bool Absolute;
         public string DateFrom;
         public string DateTo;
         public List<PersonalizedProfileRecord> Records;
-        public PersonalizedProfiles(CLoadProfile profiles)
+        public PersonalizedProfiles(CLoadProfile profiles, int SerialNumber)
         {
+            this.SerialNumber = SerialNumber.ToString();
             Number = profiles.Number;
             Absolute = profiles.Absolute;
             DateFrom = profiles.DateFrom.ToString("yyyy-MM-dd HH:mm:ss");

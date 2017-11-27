@@ -118,7 +118,7 @@ namespace GISCE.Net
                 {
                     // Get profiles
                     CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(3, 1, false, DateFrom, DateTo);
-                    PersonalizedProfiles Result = new PersonalizedProfiles(Profiles);
+                    PersonalizedProfiles Result = new PersonalizedProfiles(Profiles, SerialNumber);
                     json_result = new JavaScriptSerializer().Serialize(Result);
                 }
 
