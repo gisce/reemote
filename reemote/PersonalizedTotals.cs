@@ -9,7 +9,7 @@ namespace GISCE.Net.Readings {
         {
             return DateTime.ParseExact(date, "yyyy/M/d H:m:s.f", CultureInfo.InvariantCulture).ToString("yyyy-MM-dd HH:mm:ss");
         }
-}
+    }
     public class PersonalizedTotals
     {
         public byte Contract;
