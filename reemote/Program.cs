@@ -106,7 +106,12 @@ namespace GISCE.Net
                 CTotals Totals = ProtocolIEC870REE.ReadTotalsHistory(1, DateFrom, DateTo);
                 PersonalizedTotals PTotals = new PersonalizedTotals(Totals);
 
-                ProtocolIEC870REE.CloseSession();
+                try {
+                    ProtocolIEC870REE.CloseSession();
+                }
+                catch (PROTOCOL_IEC870REE_RESULT) {
+
+                }
                 ProtocolIEC870REE.ClosePort();
 
                 var json = new JavaScriptSerializer().Serialize(PTotals);
