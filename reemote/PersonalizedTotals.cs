@@ -4,6 +4,12 @@ using System.Collections.Generic;
 using System.Globalization;
 
 namespace GISCE.Net.Readings {
+    public static class Utilities {
+        public static string parse_date(string date)
+        {
+            return DateTime.ParseExact(date, "yyyy/M/d H:m:s.f", CultureInfo.InvariantCulture).ToString("yyyy-MM-dd HH:mm:ss");
+        }
+}
     public class PersonalizedTotals
     {
         public byte Contract;
@@ -13,8 +19,8 @@ namespace GISCE.Net.Readings {
         public PersonalizedTotals(CTotals totals)
         {
             Contract = totals.Contract;
-            DateFrom = DateTime.ParseExact(totals.DateFrom.ToString(), "yyyy/M/d H:m:s.f", CultureInfo.InvariantCulture).ToString("yyyy-MM-dd HH:mm:ss");
-            DateTo   = DateTime.ParseExact(totals.DateTo.ToString(), "yyyy/M/d H:m:s.f", CultureInfo.InvariantCulture).ToString("yyyy-MM-dd HH:mm:ss");
+            DateFrom = Utilities.parse_date(totals.DateFrom.ToString());
+            DateTo = Utilities.parse_date(totals.DateTo.ToString());
             Totals = new List<PersonalizedTotal>();
             foreach (CTotal total in totals.Totals)
             {
@@ -49,8 +55,8 @@ namespace GISCE.Net.Readings {
         public PersonalizedTotal(CTotal total)
         {
             Tariff = total.Tariff;
-            PeriodStart = DateTime.ParseExact(total.PeriodStart.ToString(), "yyyy/M/d H:m:s.f", CultureInfo.InvariantCulture).ToString("yyyy-MM-dd HH:mm:ss");
-            PeriodEnd = DateTime.ParseExact(total.PeriodEnd.ToString(), "yyyy/M/d H:m:s.f", CultureInfo.InvariantCulture).ToString("yyyy-MM-dd HH:mm:ss");
+            PeriodStart = Utilities.parse_date(total.PeriodStart.ToString());
+            PeriodEnd = Utilities.parse_date(total.PeriodEnd.ToString());
             ActiveEnergyAbs = total.ActiveEnergyAbs;
             ActiveEnergyInc = total.ActiveEnergyInc;
             QualityActiveEnergy = total.QualityActiveEnergy;
@@ -66,7 +72,7 @@ namespace GISCE.Net.Readings {
             QualityReservedField8 = total.QualityReservedField8;
             MaximumDemand = total.MaximumDemand;
             QualityMaximumDemand = total.QualityMaximumDemand;
-            MaximumDemandTimeStamp = DateTime.ParseExact(total.MaximumDemandTimeStamp.ToString(), "yyyy/M/d H:m:s.f", CultureInfo.InvariantCulture).ToString("yyyy-MM-dd HH:mm:ss");
+            MaximumDemandTimeStamp = Utilities.parse_date(total.MaximumDemandTimeStamp.ToString());
             Excess = total.Excess;
             QualityExcess = total.QualityExcess;
         }
