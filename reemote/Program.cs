@@ -106,18 +106,19 @@ namespace GISCE.Net
                 ProtocolIEC870REE.OpenSession();
 
                 var json_result = "No result generated!";
+                int SerialNumber = ProtocolIEC870REE.GetSerialNumber();
                 if (args[7] == "billings")
                 {
                     // Get billings
                     CTotals Totals = ProtocolIEC870REE.ReadTotalsHistory(1, DateFrom, DateTo);
-                    PersonalizedTotals Result = new PersonalizedTotals(Totals);
+                    PersonalizedTotals Result = new PersonalizedTotals(Totals, SerialNumber);
                     json_result = new JavaScriptSerializer().Serialize(Result);
                 }
                 else if (args[7] == "profiles")
                 {
                     // Get profiles
                     CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(3, 1, false, DateFrom, DateTo);
-                    PersonalizedProfiles Result = new PersonalizedProfiles(Profiles);
+                    PersonalizedProfiles Result = new PersonalizedProfiles(Profiles, SerialNumber);
                     json_result = new JavaScriptSerializer().Serialize(Result);
                 }
 

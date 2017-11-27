@@ -12,12 +12,14 @@ namespace GISCE.Net.Readings {
     }
     public class PersonalizedTotals
     {
+        public string SerialNumber;
         public byte Contract;
         public string DateFrom;
         public string DateTo;
         public List<PersonalizedTotal> Totals;
-        public PersonalizedTotals(CTotals totals)
+        public PersonalizedTotals(CTotals totals, int SerialNumber)
         {
+            this.SerialNumber = SerialNumber.ToString();
             Contract = totals.Contract;
             DateFrom = Utilities.parse_date(totals.DateFrom.ToString());
             DateTo = Utilities.parse_date(totals.DateTo.ToString());
