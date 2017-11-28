@@ -13,6 +13,8 @@ using System.Diagnostics;
 using Daiza.Com.Datetime;
 using System.Web.Script.Serialization;
 using GISCE.Net.Readings;
+using GISCE.Net.Profiles;
+
 
 namespace GISCE.Net
 {
@@ -33,7 +35,7 @@ namespace GISCE.Net
 
         static void Main(string[] args)
         {
-            if (args.Length != 7)
+            if (args.Length != 8)
             {
                 Console.WriteLine("REEMote version: {0}", REEMote.GetVersion());
                 Console.WriteLine("Please enter all required arguments.");
@@ -103,8 +105,22 @@ namespace GISCE.Net
                 ProtocolIEC870REE.OpenPort();
                 ProtocolIEC870REE.OpenSession();
 
-                CTotals Totals = ProtocolIEC870REE.ReadTotalsHistory(1, DateFrom, DateTo);
-                PersonalizedTotals PTotals = new PersonalizedTotals(Totals);
+                var json_result = "No result generated!";
+                int SerialNumber = ProtocolIEC870REE.GetSerialNumber();
+                if (args[7] == "billings")
+                {
+                    // Get billings
+                    CTotals Totals = ProtocolIEC870REE.ReadTotalsHistory(1, DateFrom, DateTo);
+                    PersonalizedTotals Result = new PersonalizedTotals(Totals, SerialNumber);
+                    json_result = new JavaScriptSerializer().Serialize(Result);
+                }
+                else if (args[7] == "profiles")
+                {
+                    // Get profiles
+                    CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(3, 1, false, DateFrom, DateTo);
+                    PersonalizedProfiles Result = new PersonalizedProfiles(Profiles, SerialNumber);
+                    json_result = new JavaScriptSerializer().Serialize(Result);
+                }
 
                 try {
                     ProtocolIEC870REE.CloseSession();
@@ -114,8 +130,7 @@ namespace GISCE.Net
                 }
                 ProtocolIEC870REE.ClosePort();
 
-                var json = new JavaScriptSerializer().Serialize(PTotals);
-                Console.WriteLine(json);
+                Console.WriteLine(json_result);
 
                 Environment.Exit(0);
             }
