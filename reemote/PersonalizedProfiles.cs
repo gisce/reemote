@@ -15,35 +15,35 @@ namespace GISCE.Net.Profiles {
         {
             if (channel_name == CLoadProfileChannel.ACTIVE_IMPORT)
             {
-                return "ai";
+                return "AI";
             }
             else if (channel_name == CLoadProfileChannel.ACTIVE_EXPORT)
             {
-                return "ae";
+                return "AE";
             }
             else if (channel_name == CLoadProfileChannel.REACTIVE_QUADRANT_1)
             {
-                return "r1";
+                return "R1";
             }
             else if (channel_name == CLoadProfileChannel.REACTIVE_QUADRANT_2)
             {
-                return "r2";
+                return "R2";
             }
             else if (channel_name == CLoadProfileChannel.REACTIVE_QUADRANT_3)
             {
-                return "r3";
+                return "R3";
             }
             else if (channel_name == CLoadProfileChannel.REACTIVE_QUADRANT_4)
             {
-                return "r4";
+                return "R4";
             }
             else if (channel_name == CLoadProfileChannel.RES_7)
             {
-                return "res7";
+                return "RES7";
             }
             else if (channel_name == CLoadProfileChannel.RES_8)
             {
-                return "res8";
+                return "RES8";
             }
             else
             {
