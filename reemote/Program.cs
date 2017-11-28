@@ -121,34 +121,36 @@ namespace GISCE.Net
                 CTimeInfo DateTo = new CTimeInfo((short)DateToArg.Year, (byte)DateToArg.Month, (byte)DateToArg.Day,
                 (byte)DateToArg.Hour, (byte)DateToArg.Minute, (byte)DateToArg.Second, (short)DateToArg.Millisecond);
 
-                ProtocolIEC870REE.OpenPort();
-                ProtocolIEC870REE.OpenSession();
-
-                var json_result = "No result generated! Maybe you need to specify a request.";
-                int SerialNumber = ProtocolIEC870REE.GetSerialNumber();
-                if (option == "b")
+                string json_result = "ERROR: No result generated! You may need to specify a request.";
+                if (option != "")
                 {
-                    // Get billings
-                    CTotals Totals = ProtocolIEC870REE.ReadTotalsHistory(1, DateFrom, DateTo);
-                    PersonalizedTotals Result = new PersonalizedTotals(Totals, SerialNumber);
-                    json_result = new JavaScriptSerializer().Serialize(Result);
-                }
-                else if (option == "p")
-                {
-                    // Get profiles
-                    CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(3, 1, false, DateFrom, DateTo);
-                    PersonalizedProfiles Result = new PersonalizedProfiles(Profiles, SerialNumber);
-                    json_result = new JavaScriptSerializer().Serialize(Result);
-                }
+                    ProtocolIEC870REE.OpenPort();
+                    ProtocolIEC870REE.OpenSession();
 
-                try {
-                    ProtocolIEC870REE.CloseSession();
-                }
-                catch (PROTOCOL_IEC870REE_RESULT) {
+                    int SerialNumber = ProtocolIEC870REE.GetSerialNumber();
+                    if (option == "b")
+                    {
+                        // Get billings
+                        CTotals Totals = ProtocolIEC870REE.ReadTotalsHistory(1, DateFrom, DateTo);
+                        PersonalizedTotals Result = new PersonalizedTotals(Totals, SerialNumber);
+                        json_result = new JavaScriptSerializer().Serialize(Result);
+                    }
+                    else if (option == "p")
+                    {
+                        // Get profiles
+                        CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(3, 1, false, DateFrom, DateTo);
+                        PersonalizedProfiles Result = new PersonalizedProfiles(Profiles, SerialNumber);
+                        json_result = new JavaScriptSerializer().Serialize(Result);
+                    }
 
-                }
-                ProtocolIEC870REE.ClosePort();
+                    try {
+                        ProtocolIEC870REE.CloseSession();
+                    }
+                    catch (PROTOCOL_IEC870REE_RESULT) {
 
+                    }
+                    ProtocolIEC870REE.ClosePort();
+                }
                 Console.WriteLine(json_result);
 
                 Environment.Exit(0);
