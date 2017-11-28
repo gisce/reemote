@@ -14,6 +14,7 @@ using Daiza.Com.Datetime;
 using System.Web.Script.Serialization;
 using GISCE.Net.Readings;
 using GISCE.Net.Profiles;
+using NDesk.Options;
 
 
 namespace GISCE.Net
@@ -33,52 +34,74 @@ namespace GISCE.Net
             Console.WriteLine(Protocol.GetLicenseInfo());
         }
 
+        static void ShowHelp (OptionSet p)
+        {
+            Console.WriteLine ("Usage: reemote.exe [OPTIONS]");
+            Console.WriteLine ("Choose either a requests for billings (-b) or profiles (-p).");
+            Console.WriteLine ("If no request option is specified, a generic output is shown.");
+            Console.WriteLine ();
+            Console.WriteLine ("Options:");
+            p.WriteOptionDescriptions (Console.Out);
+        }
+
         static void Main(string[] args)
         {
-            if (args.Length != 8)
-            {
-                Console.WriteLine("REEMote version: {0}", REEMote.GetVersion());
-                Console.WriteLine("Please enter all required arguments.");
-                Console.WriteLine("Arguments: IP Port LinkAddress MeasuringPointAddress Password DateFrom DateTo");
 
+            bool show_help = false;
+            string ip_address = "";
+            string option = "";
+            int port = 0;
+            int pass = 0;
+            short link_addr = 0;
+            short mpoint_addr = 0;
+            DateTime DateFromArg = new DateTime();
+            DateTime DateToArg = new DateTime();
+            var p = new OptionSet () {
+                { "h|help",  "Shows this message and exits.",
+                  v => show_help = v != null },
+                { "b", "To request for billings.",
+                  v => option="b" },
+                { "p", "To request for profiles.",
+                  v => option="p" },
+                { "i|ip|ipaddr=", "The IP adress of the meter.",
+                  v => ip_address=v },
+                { "o|port=", "The port of the meter.",
+                  v => port=Int32.Parse(v) },
+                { "l|link=", "The LinkAddress of the connection.",
+                  v => link_addr=short.Parse(v) },
+                { "m|mpoint=", "The MeasuringPointAddress of the connection.",
+                  v => mpoint_addr=short.Parse(v) },
+                { "w|pass=", "The password of the connection.",
+                  v => pass=Int32.Parse(v) },
+                { "f|df|datefrom=", "The starting date of the period.",
+                  v => DateFromArg=DateTime.Parse(v) },
+                { "t|dt|dateto=", "The ending date of the period.",
+                  v => DateToArg=DateTime.Parse(v) },
+            };
+            try {
+                p.Parse(args);
+            }
+            catch (OptionException e) {
+                Console.Write ("reemote: ");
+                Console.WriteLine (e.Message);
+                Console.WriteLine ("Try `reemote.exe --help' for more information.");
+                return;
+            }
+
+            if (show_help) {
+                ShowHelp (p);
+                return;
             }
 
             CProtocolIEC870REE ProtocolIEC870REE = null;
-
             try
             {
                 String LicensePackage = Environment.GetEnvironmentVariable("DAIZACOM_LICENSE_PACKAGE");
                 String LicenseMachine = Environment.GetEnvironmentVariable("DAIZACOM_LICENSE_MACHINE");
                 ProtocolIEC870REE = new CProtocolIEC870REE(LicenseMachine, LicensePackage);
 
-                // CPortConfigRS232 PortConfigRS232 = new CPortConfigRS232();
-                // PortConfigRS232.Name = "COM3";
-                // PortConfigRS232.Baudrate = new PORT_BAUDRATE(PORT_BAUDRATE.PORT_BAUDRATE_9600);
-                // PortConfigRS232.Databits = new PORT_DATABITS(PORT_DATABITS.PORT_DATABITS_8);
-                // PortConfigRS232.Parity = new PORT_PARITY(PORT_PARITY.PORT_PARITY_NOPARITY);
-                // PortConfigRS232.Stopbits = new PORT_STOPBITS(PORT_STOPBITS.PORT_STOPBITS_ONESTOPBIT);
-                // PortConfigRS232.Timeout = 10000;
-                // ProtocolIEC870REE.SetPortConfig(PortConfigRS232);
-
-                //CPortConfigGSM PortConfigGSM = new CPortConfigGSM();
-                //PortConfigGSM.Name = "COM3";
-                //PortConfigGSM.Baudrate = new PORT_BAUDRATE(PORT_BAUDRATE.PORT_BAUDRATE_9600);
-                //PortConfigGSM.Databits = new PORT_DATABITS(PORT_DATABITS.PORT_DATABITS_8);
-                //PortConfigGSM.Parity = new PORT_PARITY(PORT_PARITY.PORT_PARITY_NOPARITY);
-                //PortConfigGSM.Stopbits = new PORT_STOPBITS(PORT_STOPBITS.PORT_STOPBITS_ONESTOPBIT);
-                //PortConfigGSM.Timeout = 10000;
-                //PortConfigGSM.ConnectionTimeout = 60000;
-                //PortConfigGSM.DisconnectionTimeout = 5000;                
-
-                int port, pass;
-                short link_addr, mpoint_addr;
-                int.TryParse(args[1], out port);
-                short.TryParse(args[2], out link_addr);
-                short.TryParse(args[3], out mpoint_addr);
-                int.TryParse(args[4], out pass);
-
                 CPortConfigTCPIP PortConfigTCPIP = new CPortConfigTCPIP();
-                PortConfigTCPIP.IPAddress = args[0];
+                PortConfigTCPIP.IPAddress = ip_address;
                 PortConfigTCPIP.IPPort = port;
                 PortConfigTCPIP.Timeout = 2000;
                 ProtocolIEC870REE.SetPortConfig(PortConfigTCPIP);
@@ -91,11 +114,7 @@ namespace GISCE.Net
                 ProtocolIEC870REEConnection.OpenSessionTimeout = 2000;
                 ProtocolIEC870REEConnection.MacLayerRetries = 3;
                 ProtocolIEC870REEConnection.MacLayerRetriesDelay = 1000;
-
                 ProtocolIEC870REE.SetConnectionConfig(ProtocolIEC870REEConnection);
-
-                DateTime DateFromArg = DateTime.Parse(args[5]);
-                DateTime DateToArg = DateTime.Parse(args[6]);
 
                 CTimeInfo DateFrom = new CTimeInfo((short)DateFromArg.Year, (byte)DateFromArg.Month, (byte)DateFromArg.Day,
                 (byte)DateFromArg.Hour, (byte)DateFromArg.Minute, (byte)DateFromArg.Second, (short)DateFromArg.Millisecond);
@@ -105,16 +124,16 @@ namespace GISCE.Net
                 ProtocolIEC870REE.OpenPort();
                 ProtocolIEC870REE.OpenSession();
 
-                var json_result = "No result generated!";
+                var json_result = "No result generated! Maybe you need to specify a request.";
                 int SerialNumber = ProtocolIEC870REE.GetSerialNumber();
-                if (args[7] == "billings")
+                if (option == "b")
                 {
                     // Get billings
                     CTotals Totals = ProtocolIEC870REE.ReadTotalsHistory(1, DateFrom, DateTo);
                     PersonalizedTotals Result = new PersonalizedTotals(Totals, SerialNumber);
                     json_result = new JavaScriptSerializer().Serialize(Result);
                 }
-                else if (args[7] == "profiles")
+                else if (option == "p")
                 {
                     // Get profiles
                     CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(3, 1, false, DateFrom, DateTo);
@@ -175,3 +194,22 @@ namespace GISCE.Net
         }
     }
 }
+
+// CPortConfigRS232 PortConfigRS232 = new CPortConfigRS232();
+// PortConfigRS232.Name = "COM3";
+// PortConfigRS232.Baudrate = new PORT_BAUDRATE(PORT_BAUDRATE.PORT_BAUDRATE_9600);
+// PortConfigRS232.Databits = new PORT_DATABITS(PORT_DATABITS.PORT_DATABITS_8);
+// PortConfigRS232.Parity = new PORT_PARITY(PORT_PARITY.PORT_PARITY_NOPARITY);
+// PortConfigRS232.Stopbits = new PORT_STOPBITS(PORT_STOPBITS.PORT_STOPBITS_ONESTOPBIT);
+// PortConfigRS232.Timeout = 10000;
+// ProtocolIEC870REE.SetPortConfig(PortConfigRS232);
+
+// CPortConfigGSM PortConfigGSM = new CPortConfigGSM();
+// PortConfigGSM.Name = "COM3";
+// PortConfigGSM.Baudrate = new PORT_BAUDRATE(PORT_BAUDRATE.PORT_BAUDRATE_9600);
+// PortConfigGSM.Databits = new PORT_DATABITS(PORT_DATABITS.PORT_DATABITS_8);
+// PortConfigGSM.Parity = new PORT_PARITY(PORT_PARITY.PORT_PARITY_NOPARITY);
+// PortConfigGSM.Stopbits = new PORT_STOPBITS(PORT_STOPBITS.PORT_STOPBITS_ONESTOPBIT);
+// PortConfigGSM.Timeout = 10000;
+// PortConfigGSM.ConnectionTimeout = 60000;
+// PortConfigGSM.DisconnectionTimeout = 5000;
