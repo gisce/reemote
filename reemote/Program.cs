@@ -52,6 +52,8 @@ namespace GISCE.Net
             string option = "";
             int port = 0;
             int pass = 0;
+            byte request = 2;
+            byte contract = 1;
             short link_addr = 0;
             short mpoint_addr = 0;
             DateTime DateFromArg = new DateTime();
@@ -77,6 +79,10 @@ namespace GISCE.Net
                   v => DateFromArg=DateTime.Parse(v) },
                 { "t|dt|dateto=", "The ending date of the period.",
                   v => DateToArg=DateTime.Parse(v) },
+                { "r|request=", "The Type of request to use (0, 1, 2, 3, 4).",
+                  v => request=byte.Parse(v) },
+                { "c|contract=", "The contract to request from the meter.",
+                  v => contract=byte.Parse(v) },
             };
             try {
                 p.Parse(args);
@@ -138,7 +144,7 @@ namespace GISCE.Net
                     else if (option == "p")
                     {
                         // Get profiles
-                        CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(3, 1, false, DateFrom, DateTo);
+                        CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(request, contract, false, DateFrom, DateTo);
                         PersonalizedProfiles Result = new PersonalizedProfiles(Profiles, SerialNumber);
                         json_result = new JavaScriptSerializer().Serialize(Result);
                     }
