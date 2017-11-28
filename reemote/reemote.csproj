@@ -35,6 +35,9 @@
       <HintPath>DaizaCom NET.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.Extensions"/>
+    <Reference Include="NDesk.Options">
+      <HintPath>NDesk.Options.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PersonalizedProfiles.cs" />
