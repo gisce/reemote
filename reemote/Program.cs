@@ -30,17 +30,17 @@ namespace GISCE.Net
 
         static void PrintLicenceInfo(CProtocolIEC870REE Protocol)
         {
-            Console.WriteLine("==== LICENSE INFO =====");
-            Console.WriteLine(Protocol.GetLicenseInfo());
+            Console.Out.WriteLine("==== LICENSE INFO =====");
+            Console.Out.WriteLine(Protocol.GetLicenseInfo());
         }
 
         static void ShowHelp (OptionSet p)
         {
-            Console.WriteLine ("Usage: reemote.exe [OPTIONS]");
-            Console.WriteLine ("Choose either a requests for billings (-b) or profiles (-p).");
-            Console.WriteLine ("If no request option is specified, a generic output is shown.");
-            Console.WriteLine ();
-            Console.WriteLine ("Options:");
+            Console.Out.WriteLine ("Usage: reemote.exe [OPTIONS]");
+            Console.Out.WriteLine ("Choose either a requests for billings (-b) or profiles (-p).");
+            Console.Out.WriteLine ("If no request option is specified, a generic output is shown.");
+            Console.Out.WriteLine ();
+            Console.Out.WriteLine ("Options:");
             p.WriteOptionDescriptions (Console.Out);
         }
 
@@ -88,9 +88,9 @@ namespace GISCE.Net
                 p.Parse(args);
             }
             catch (OptionException e) {
-                Console.Write ("reemote: ");
-                Console.WriteLine (e.Message);
-                Console.WriteLine ("Try `reemote.exe --help' for more information.");
+                Console.Error.Write ("reemote: ");
+                Console.Error.WriteLine (e.Message);
+                Console.Error.WriteLine ("Try `reemote.exe --help' for more information.");
                 return;
             }
 
@@ -157,38 +157,38 @@ namespace GISCE.Net
                     }
                     ProtocolIEC870REE.ClosePort();
                 }
-                Console.WriteLine(json_result);
+                Console.Out.WriteLine(json_result);
 
                 Environment.Exit(0);
             }
             catch (LICENSE_RESULT elr)
             {
-                Console.WriteLine(elr.Message);
-                Console.WriteLine("You should get a valid LICENSE for one of the following MAC addresses:");
+                Console.Error.WriteLine(elr.Message);
+                Console.Error.WriteLine("You should get a valid LICENSE for one of the following MAC addresses:");
                 NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
                 foreach (NetworkInterface adapter in nics)
                 {
                     String macAddress = adapter.GetPhysicalAddress().ToString();
                     if (macAddress != "")
                     {
-                        Console.WriteLine("  Physical address: {0}", macAddress);
+                        Console.Error.WriteLine("  Physical address: {0}", macAddress);
                     }
                 }
-                Console.WriteLine("And export using the environment vars: DAIZACOM_LICENSE_MACHINE and DAIZACOM_LICENSE_PACKAGE");
+                Console.Error.WriteLine("And export using the environment vars: DAIZACOM_LICENSE_MACHINE and DAIZACOM_LICENSE_PACKAGE");
                 Environment.Exit(1);
             }
             catch (PROTOCOL_IEC870REE_RESULT ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.Error.WriteLine(ex.Message);
 
                 if (ProtocolIEC870REE != null)
                 {
                     CSniffer oSniffer = ProtocolIEC870REE.GetSniffer();
                     foreach (CAction Action in oSniffer.ActionsQueue)
                     {
-                        Console.WriteLine(Action.Description);
-                        Console.WriteLine(Action.TimeInfo.ToString());
-                        Console.WriteLine(Action.Data);
+                        Console.Error.WriteLine(Action.Description);
+                        Console.Error.WriteLine(Action.TimeInfo.ToString());
+                        Console.Error.WriteLine(Action.Data);
                     }
                     ProtocolIEC870REE.CloseSession();
                     ProtocolIEC870REE.ClosePort();
@@ -196,7 +196,7 @@ namespace GISCE.Net
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.Error.WriteLine(ex.Message);
                 Environment.Exit(1);
             }
         }
