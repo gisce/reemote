@@ -48,8 +48,15 @@ class ReemoteWrapper(object):
         if self.option == "b":
             command += " -b"
         elif self.option == "p":
-            command += " -p -r {0} -c {1}".format(self.request, self.contract)
-
+            command += " -p -r {0} -c {1}".format(self.request,
+                                                  self.contract)
+        logging.getLogger(__name__).info(
+            'Command that will be executed: {}'.format(command)
+        )
         proc = Popen(command.split(), stdout=PIPE, stderr=PIPE)
         stdout, stderr = proc.communicate()
-        json.loads(stdout)
+        if stderr:
+            logging.getLogger(__name__).info(
+                "ERROR: {}".format(stderr)
+            )
+        return json.loads(stdout)
