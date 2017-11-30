@@ -24,6 +24,19 @@ class ReemoteWrapper(object):
 
     def __init__(self, ipaddr, port, link, mpoint, passwrd, datefrom, dateto,
                  option, request, contract):
+        """
+
+        :param ipaddr: Ip addres for the connection
+        :param port: Port for the connection
+        :param link: LinkAddress
+        :param mpoint: MeasuringPointAddress
+        :param passwrd: Password
+        :param datefrom: Date
+        :param dateto: Date
+        :param option: Wither "b" for Billing or "p" for Profiles
+        :param request: Different typres of request for the Profiles
+        :param contract: List of contracts e.g:[1,3]
+        """
         if validate(datefrom) and validate(dateto):
             self.ipaddr = ipaddr
             self.port = port
@@ -34,6 +47,8 @@ class ReemoteWrapper(object):
             self.dateto = dateto
             self.option = option
             self.request = request
+            if not isinstance(contract, list):
+                contract = list(contract)
             self.contract = contract
         else:
             logging.getLogger(__name__).info(
@@ -47,9 +62,10 @@ class ReemoteWrapper(object):
                                          self.datefrom, self.dateto)
         if self.option == "b":
             command += " -b"
+            for contract in self.contract:
+                command += " -c{}".format(contract)
         elif self.option == "p":
-            command += " -p -r {0} -c {1}".format(self.request,
-                                                  self.contract)
+            command += " -p -r {0}".format(self.request)
         logging.getLogger(__name__).info(
             'Command that will be executed: {}'.format(command)
         )
