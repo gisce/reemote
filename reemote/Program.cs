@@ -53,7 +53,9 @@ namespace GISCE.Net
             int port = 0;
             int pass = 0;
             byte request = 2;
-            byte contract = 1;
+            bool contract1 = false;
+            bool contract2 = false;
+            bool contract3 = false;
             short link_addr = 0;
             short mpoint_addr = 0;
             DateTime DateFromArg = new DateTime();
@@ -81,8 +83,12 @@ namespace GISCE.Net
                   v => DateToArg=DateTime.Parse(v) },
                 { "r|request=", "The Type of request to use (0, 1, 2, 3, 4).",
                   v => request=byte.Parse(v) },
-                { "c|contract=", "The contract to request from the meter.",
-                  v => contract=byte.Parse(v) },
+                { "c1|contract1", "The contract to request from the meter.",
+                    v => contract1=true },
+                { "c2|contract2", "The contract to request from the meter.",
+                    v => contract2=true },
+                { "c3|contract3", "The contract to request from the meter.",
+                    v => contract3=true },
             };
             try {
                 p.Parse(args);
@@ -98,7 +104,7 @@ namespace GISCE.Net
                 ShowHelp (p);
                 return;
             }
-
+ 
             CProtocolIEC870REE ProtocolIEC870REE = null;
             try
             {
@@ -136,15 +142,49 @@ namespace GISCE.Net
                     int SerialNumber = ProtocolIEC870REE.GetSerialNumber();
                     if (option == "b")
                     {
+                        List<PersonalizedTotals> results = new List<PersonalizedTotals>();
                         // Get billings
-                        CTotals Totals = ProtocolIEC870REE.ReadTotalsHistory(1, DateFrom, DateTo);
-                        PersonalizedTotals Result = new PersonalizedTotals(Totals, SerialNumber);
+                        if (contract1)
+                            try{
+                                CContract Contract1Tariffs = ProtocolIEC870REE.GetContractTariffs(1, true);
+                                CTotals Totals1 = ProtocolIEC870REE.ReadTotalsHistory(1, DateFrom, DateTo);
+                                results.Add(new PersonalizedTotals(Totals1, SerialNumber, Contract1Tariffs.TariffScheme.EnergyFlowImport));
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.Error.WriteLine("Error getting contract 1 information");
+                                Console.Error.WriteLine(ex.Message);
+                            }
+                        if (contract2)
+                            try{
+                                CContract Contract2Tariffs = ProtocolIEC870REE.GetContractTariffs(2, true);
+                                CTotals Totals2 = ProtocolIEC870REE.ReadTotalsHistory(2, DateFrom, DateTo);
+                                results.Add(new PersonalizedTotals(Totals2, SerialNumber, Contract2Tariffs.TariffScheme.EnergyFlowImport));
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.Error.WriteLine("Error getting contract 2 information");
+                                Console.Error.WriteLine(ex.Message);
+                            }
+                        if (contract3)
+                            try{
+                                CContract Contract3Tariffs = ProtocolIEC870REE.GetContractTariffs(3, true);
+                                CTotals Totals3 = ProtocolIEC870REE.ReadTotalsHistory(3, DateFrom, DateTo);
+                                results.Add(new PersonalizedTotals(Totals3, SerialNumber, Contract3Tariffs.TariffScheme.EnergyFlowImport));
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.Error.WriteLine("Error getting contract 3 information");
+                                Console.Error.WriteLine(ex.Message);
+                            }
+
+                        PersonalizedResult Result = new PersonalizedResult(results);
                         json_result = new JavaScriptSerializer().Serialize(Result);
                     }
                     else if (option == "p")
                     {
                         // Get profiles
-                        CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(request, contract, false, DateFrom, DateTo);
+                        CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(request, 1, false, DateFrom, DateTo);
                         PersonalizedProfiles Result = new PersonalizedProfiles(Profiles, SerialNumber);
                         json_result = new JavaScriptSerializer().Serialize(Result);
                     }
