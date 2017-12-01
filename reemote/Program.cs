@@ -152,8 +152,8 @@ namespace GISCE.Net
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine("Error getting contract 1 information");
-                                Console.WriteLine(ex.Message);
+                                Console.Error.WriteLine("Error getting contract 1 information");
+                                Console.Error.WriteLine(ex.Message);
                             }
                         if (contract2)
                             try{
@@ -163,8 +163,8 @@ namespace GISCE.Net
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine("Error getting contract 2 information");
-                                Console.WriteLine(ex.Message);
+                                Console.Error.WriteLine("Error getting contract 2 information");
+                                Console.Error.WriteLine(ex.Message);
                             }
                         if (contract3)
                             try{
@@ -174,8 +174,8 @@ namespace GISCE.Net
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine("Error getting contract 3 information");
-                                Console.WriteLine(ex.Message);
+                                Console.Error.WriteLine("Error getting contract 3 information");
+                                Console.Error.WriteLine(ex.Message);
                             }
 
                         PersonalizedResult Result = new PersonalizedResult(results);
