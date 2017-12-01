@@ -54,7 +54,7 @@ class ReemoteWrapper(object):
             if 'REEMOTE_PATH' in os.environ:
                 self.reemote = os.environ['REEMOTE_PATH']
                 if not os.path.exists(self.reemote):
-                    raise ValueError('The designed path for the executable
+                    raise ValueError('The designed path for the executable'
                                      ' doesn\'t exist')
             else:
                 raise ValueError('Can\'t find the path to the Reemote '
