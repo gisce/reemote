@@ -54,9 +54,8 @@ class ReemoteWrapper(object):
             if 'REEMOTE_PATH' in os.environ:
                 self.reemote = os.environ['REEMOTE_PATH']
             else:
-                logging.getLogger(__name__).info(
-                    'ERROR: Can\'t find the path to the Reemote executable'
-                )
+                raise ValueError('Can\'t find the path to the Reemote '
+                                 'executable')
         else:
             logging.getLogger(__name__).info(
                 'ERROR: Date format is wrong. Expected: %Y-%m-%dT%H:%M:%S'
