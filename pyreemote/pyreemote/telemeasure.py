@@ -4,6 +4,7 @@ from subprocess import Popen, PIPE
 import json
 import logging
 from datetime import datetime
+import os
 
 logging.basicConfig(format='%(asctime)s %(message)s',
                     datefmt='[%Y-%m-%dT%H:%M:%S]',
@@ -50,15 +51,21 @@ class ReemoteWrapper(object):
             if not isinstance(contract, list):
                 contract = list(contract)
             self.contract = contract
+            if 'REEMOTE_PATH' in os.environ:
+                self.reemote = os.environ['REEMOTE_PATH']
+            else:
+                logging.getLogger(__name__).info(
+                    'ERROR: Can\'t find the path to the Reemote executable'
+                )
         else:
             logging.getLogger(__name__).info(
                 'ERROR: Date format is wrong. Expected: %Y-%m-%dT%H:%M:%S'
             )
     
     def execute_request(self):
-        command = "mono reemote.exe -i {0} -o {1} -l {2} -m {3} -w {4} " \
-                  "-f {5} -t {6}".format(self.ipaddr, self.port, self.link,
-                                         self.mpoint, self.passwrd,
+        command = "mono {0} -i {1} -o {2} -l {3} -m {4} -w {5} " \
+                  "-f {6} -t {7}".format(self.reemote, self.ipaddr, self.port,
+                                         self.link, self.mpoint, self.passwrd,
                                          self.datefrom, self.dateto)
         if self.option == "b":
             command += " -b"
