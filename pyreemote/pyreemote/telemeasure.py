@@ -71,8 +71,7 @@ class ReemoteWrapper(object):
                                          self.datefrom, self.dateto)
         if self.option == "b":
             command += " -b"
-            for contract in self.contract:
-                command += " -c{}".format(contract)
+            command += " -c1 -c2 -c3"
         elif self.option == "p":
             command += " -p -r {0}".format(self.request)
         logging.getLogger(__name__).info(
