@@ -83,6 +83,5 @@ class ReemoteWrapper(object):
             logging.getLogger(__name__).info(
                 "ERROR: {}".format(stderr)
             )
-            raise Exception(stderr)
-        else:
+        if stdout:
             return json.loads(stdout)
