@@ -24,7 +24,7 @@ def validate(date_text):
 class ReemoteWrapper(object):
 
     def __init__(self, ipaddr, port, link, mpoint, passwrd, datefrom, dateto,
-                 option, request, contract):
+                 option, request):
         """
 
         :param ipaddr: Ip addres for the connection
@@ -36,7 +36,6 @@ class ReemoteWrapper(object):
         :param dateto: Date
         :param option: Wither "b" for Billing or "p" for Profiles
         :param request: Different typres of request for the Profiles
-        :param contract: List of contracts e.g:[1,3]
         """
         if validate(datefrom) and validate(dateto):
             self.ipaddr = ipaddr
@@ -48,9 +47,6 @@ class ReemoteWrapper(object):
             self.dateto = dateto
             self.option = option
             self.request = request
-            if not isinstance(contract, list):
-                contract = list(contract)
-            self.contract = contract
             if 'REEMOTE_PATH' in os.environ:
                 self.reemote = os.environ['REEMOTE_PATH']
                 if not os.path.exists(self.reemote):
