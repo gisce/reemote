@@ -6,9 +6,8 @@ import logging
 from datetime import datetime
 import os
 
-logging.basicConfig(format='%(asctime)s %(message)s',
-                    datefmt='[%Y-%m-%dT%H:%M:%S]',
-                    level=logging.INFO)
+
+logger = logging.getLogger(__name__)
 
 
 def validate(date_text):
@@ -60,7 +59,7 @@ class ReemoteWrapper(object):
                 raise ValueError('Can\'t find the path to the Reemote '
                                  'executable')
         else:
-            logging.getLogger(__name__).info(
+            logger.info(
                 'ERROR: Date format is wrong. Expected: %Y-%m-%dT%H:%M:%S'
             )
     
@@ -75,13 +74,13 @@ class ReemoteWrapper(object):
                 command += " -c{}".format(contract)
         elif self.option == "p":
             command += " -p -r {0}".format(self.request)
-        logging.getLogger(__name__).info(
+        logger.info(
             'Command that will be executed: {}'.format(command)
         )
         proc = Popen(command.split(), stdout=PIPE, stderr=PIPE)
         stdout, stderr = proc.communicate()
         if stderr:
-            logging.getLogger(__name__).info(
+            logger.info(
                 "ERROR: {}".format(stderr)
             )
             raise Exception(stderr)
