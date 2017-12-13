@@ -82,11 +82,20 @@ namespace GISCE.Net.Profiles {
     public class PersonalizedProfileRecord
     {
         public string TimeInfo;
+        public char Season;
         public List<PersonalizedProfileChannel> Channels;
         public PersonalizedProfileRecord(CLoadProfileRecord record)
         {
             TimeInfo = Utilities.parse_date(record.TimeInfo.ToString());
             Channels = new List<PersonalizedProfileChannel>();
+            if (record.TimeInfo.TimeZone.DSTActive)
+            {
+                Season = 'S';
+            }
+            else{
+                Season = 'W';
+            }
+
             foreach (CLoadProfileChannel channel in record.Channels)
             {
                 Channels.Add(new PersonalizedProfileChannel(channel));
