@@ -23,7 +23,7 @@ def validate(date_text):
 class ReemoteWrapper(object):
 
     def __init__(self, ipaddr, port, link, mpoint, passwrd, datefrom, dateto,
-                 option, request):
+                 option, request, contract=None):
         """
 
         :param ipaddr: Ip addres for the connection
@@ -35,6 +35,7 @@ class ReemoteWrapper(object):
         :param dateto: Date
         :param option: Wither "b" for Billing or "p" for Profiles
         :param request: Different typres of request for the Profiles
+        :param contract: List of contracts e.g:[1,3]
         """
         if validate(datefrom) and validate(dateto):
             self.ipaddr = ipaddr
@@ -46,6 +47,13 @@ class ReemoteWrapper(object):
             self.dateto = dateto
             self.option = option
             self.request = request
+            if contract:
+                if not isinstance(contract, list):
+                    contract = list(contract)
+                self.contract = contract
+            else:
+                self.contract = None
+
             if 'REEMOTE_PATH' in os.environ:
                 self.reemote = os.environ['REEMOTE_PATH']
                 if not os.path.exists(self.reemote):
@@ -66,7 +74,11 @@ class ReemoteWrapper(object):
                                          self.datefrom, self.dateto)
         if self.option == "b":
             command += " -b"
-            command += " -c1 -c2 -c3"
+            if self.contract:
+                for contract in self.contract:
+                    command += " -c{}".format(contract)
+            else:
+                command += " -c1 -c2 -c3"
         elif self.option == "p":
             command += " -p -r {0}".format(self.request)
         logger.info(
@@ -80,3 +92,5 @@ class ReemoteWrapper(object):
             )
         if stdout:
             return json.loads(stdout)
+        else:
+            return {}
