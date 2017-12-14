@@ -81,3 +81,5 @@ class ReemoteWrapper(object):
             )
         if stdout:
             return json.loads(stdout)
+        else:
+            return {}
