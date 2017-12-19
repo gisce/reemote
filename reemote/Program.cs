@@ -122,7 +122,12 @@ namespace GISCE.Net
             PersonalizedResult Result = new PersonalizedResult(results);
             return Result;
         }
-
+        static PersonalizedProfiles GetProfiles_TCPIP (CProtocolIEC870REE ProtocolIEC870REE, CTimeInfo DateFrom, CTimeInfo DateTo, int serial, byte request)
+        {
+            CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(request, 1, false, DateFrom, DateTo);
+            PersonalizedProfiles Result = new PersonalizedProfiles(Profiles, serial);
+            return Result;
+        }
         static void Main(string[] args)
         {
 
@@ -246,9 +251,14 @@ namespace GISCE.Net
                     }
                     else if (option == "p")
                     {
-                        // Get profiles
-                        CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(request, 1, false, DateFrom, DateTo);
-                        PersonalizedProfiles Result = new PersonalizedProfiles(Profiles, SerialNumber);
+                        PersonalizedProfiles Result;
+                        if (connection == "i")
+                        {
+                            Result = GetProfiles_TCPIP(ProtocolIEC870REE, DateFrom, DateTo, SerialNumber, request);
+                        }
+                        else{
+                            Result = GetProfiles_TCPIP(ProtocolIEC870REE, DateFrom, DateTo, SerialNumber, request);
+                        }
                         json_result = new JavaScriptSerializer().Serialize(Result);
                     }
                     if (connection == "i")
