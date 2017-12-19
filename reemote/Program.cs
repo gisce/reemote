@@ -83,16 +83,14 @@ namespace GISCE.Net
             return ProtocolIEC870REEConnection;
         }
 
-        static PersonalizedResult GetBillings_TCPIP (CProtocolIEC870REE ProtocolIEC870REE, bool contract1, bool contract2, bool contract3, CTimeInfo DateFrom, CTimeInfo DateTo)
+        static PersonalizedResult GetBillings_TCPIP (CProtocolIEC870REE ProtocolIEC870REE, bool contract1, bool contract2, bool contract3, CTimeInfo DateFrom, CTimeInfo DateTo, int serial)
         {
             List<PersonalizedTotals> results = new List<PersonalizedTotals>();
-            int SerialNumber = ProtocolIEC870REE.GetSerialNumber();
-
             if (contract1)
                 try{
                     CContract Contract1Tariffs = ProtocolIEC870REE.GetContractTariffs(1, true);
                     CTotals Totals1 = ProtocolIEC870REE.ReadTotalsHistory(1, DateFrom, DateTo);
-                    results.Add(new PersonalizedTotals(Totals1, SerialNumber, Contract1Tariffs.TariffScheme.EnergyFlowImport));
+                    results.Add(new PersonalizedTotals(Totals1, serial, Contract1Tariffs.TariffScheme.EnergyFlowImport));
                 }
                 catch (Exception ex)
                 {
@@ -103,7 +101,7 @@ namespace GISCE.Net
                 try{
                     CContract Contract2Tariffs = ProtocolIEC870REE.GetContractTariffs(2, true);
                     CTotals Totals2 = ProtocolIEC870REE.ReadTotalsHistory(2, DateFrom, DateTo);
-                    results.Add(new PersonalizedTotals(Totals2, SerialNumber, Contract2Tariffs.TariffScheme.EnergyFlowImport));
+                    results.Add(new PersonalizedTotals(Totals2, serial, Contract2Tariffs.TariffScheme.EnergyFlowImport));
                 }
                 catch (Exception ex)
                 {
@@ -114,7 +112,7 @@ namespace GISCE.Net
                 try{
                     CContract Contract3Tariffs = ProtocolIEC870REE.GetContractTariffs(3, true);
                     CTotals Totals3 = ProtocolIEC870REE.ReadTotalsHistory(3, DateFrom, DateTo);
-                    results.Add(new PersonalizedTotals(Totals3, SerialNumber, Contract3Tariffs.TariffScheme.EnergyFlowImport));
+                    results.Add(new PersonalizedTotals(Totals3, serial, Contract3Tariffs.TariffScheme.EnergyFlowImport));
                 }
                 catch (Exception ex)
                 {
@@ -218,7 +216,7 @@ namespace GISCE.Net
                 (byte)DateFromArg.Hour, (byte)DateFromArg.Minute, (byte)DateFromArg.Second, (short)DateFromArg.Millisecond);
                 CTimeInfo DateTo = new CTimeInfo((short)DateToArg.Year, (byte)DateToArg.Month, (byte)DateToArg.Day,
                 (byte)DateToArg.Hour, (byte)DateToArg.Minute, (byte)DateToArg.Second, (short)DateToArg.Millisecond);
-
+                int SerialNumber;
                 string json_result = "ERROR: No result generated! You may need to specify a request.";
                 if (option != "")
                 {
@@ -227,6 +225,7 @@ namespace GISCE.Net
                     if (connection == "i")
                     {
                         ProtocolIEC870REE.OpenSession();
+                        SerialNumber = ProtocolIEC870REE.GetSerialNumber();
                     }
 
                     if (option == "b")
@@ -234,13 +233,13 @@ namespace GISCE.Net
                         PersonalizedResult Result;
                         if (connection == "i")
                         {
-                            Result = GetBillings_TCPIP(ProtocolIEC870REE, contract1, contract2, contract3, DateFrom, DateTo);
+                            Result = GetBillings_TCPIP(ProtocolIEC870REE, contract1, contract2, contract3, DateFrom, DateTo, SerialNumber);
                         }
                         else
                         {
                             CPortConfigGSM configured_port = ConfigPortGSM();
                             ProtocolIEC870REE.SetPortConfig(configured_port);
-                            Result = GetBillings_TCPIP(ProtocolIEC870REE, contract1, contract2, contract3, DateFrom, DateTo);
+                            Result = GetBillings_TCPIP(ProtocolIEC870REE, contract1, contract2, contract3, DateFrom, DateTo, SerialNumber);
                         }
 
                         json_result = new JavaScriptSerializer().Serialize(Result);
