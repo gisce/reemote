@@ -83,6 +83,48 @@ namespace GISCE.Net
             return ProtocolIEC870REEConnection;
         }
 
+        static PersonalizedResult GetBillings_TCPIP (CProtocolIEC870REE ProtocolIEC870REE, bool contract1, bool contract2, bool contract3, CTimeInfo DateFrom, CTimeInfo DateTo)
+        {
+            List<PersonalizedTotals> results = new List<PersonalizedTotals>();
+            int SerialNumber = ProtocolIEC870REE.GetSerialNumber();
+
+            if (contract1)
+                try{
+                    CContract Contract1Tariffs = ProtocolIEC870REE.GetContractTariffs(1, true);
+                    CTotals Totals1 = ProtocolIEC870REE.ReadTotalsHistory(1, DateFrom, DateTo);
+                    results.Add(new PersonalizedTotals(Totals1, SerialNumber, Contract1Tariffs.TariffScheme.EnergyFlowImport));
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine("Error getting contract 1 information");
+                    Console.Error.WriteLine(ex.Message);
+                }
+            if (contract2)
+                try{
+                    CContract Contract2Tariffs = ProtocolIEC870REE.GetContractTariffs(2, true);
+                    CTotals Totals2 = ProtocolIEC870REE.ReadTotalsHistory(2, DateFrom, DateTo);
+                    results.Add(new PersonalizedTotals(Totals2, SerialNumber, Contract2Tariffs.TariffScheme.EnergyFlowImport));
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine("Error getting contract 2 information");
+                    Console.Error.WriteLine(ex.Message);
+                }
+            if (contract3)
+                try{
+                    CContract Contract3Tariffs = ProtocolIEC870REE.GetContractTariffs(3, true);
+                    CTotals Totals3 = ProtocolIEC870REE.ReadTotalsHistory(3, DateFrom, DateTo);
+                    results.Add(new PersonalizedTotals(Totals3, SerialNumber, Contract3Tariffs.TariffScheme.EnergyFlowImport));
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine("Error getting contract 3 information");
+                    Console.Error.WriteLine(ex.Message);
+                }
+            PersonalizedResult Result = new PersonalizedResult(results);
+            return Result;
+        }
+
         static void Main(string[] args)
         {
 
@@ -189,43 +231,18 @@ namespace GISCE.Net
 
                     if (option == "b")
                     {
-                        List<PersonalizedTotals> results = new List<PersonalizedTotals>();
-                        // Get billings
-                        if (contract1)
-                            try{
-                                CContract Contract1Tariffs = ProtocolIEC870REE.GetContractTariffs(1, true);
-                                CTotals Totals1 = ProtocolIEC870REE.ReadTotalsHistory(1, DateFrom, DateTo);
-                                results.Add(new PersonalizedTotals(Totals1, SerialNumber, Contract1Tariffs.TariffScheme.EnergyFlowImport));
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.Error.WriteLine("Error getting contract 1 information");
-                                Console.Error.WriteLine(ex.Message);
-                            }
-                        if (contract2)
-                            try{
-                                CContract Contract2Tariffs = ProtocolIEC870REE.GetContractTariffs(2, true);
-                                CTotals Totals2 = ProtocolIEC870REE.ReadTotalsHistory(2, DateFrom, DateTo);
-                                results.Add(new PersonalizedTotals(Totals2, SerialNumber, Contract2Tariffs.TariffScheme.EnergyFlowImport));
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.Error.WriteLine("Error getting contract 2 information");
-                                Console.Error.WriteLine(ex.Message);
-                            }
-                        if (contract3)
-                            try{
-                                CContract Contract3Tariffs = ProtocolIEC870REE.GetContractTariffs(3, true);
-                                CTotals Totals3 = ProtocolIEC870REE.ReadTotalsHistory(3, DateFrom, DateTo);
-                                results.Add(new PersonalizedTotals(Totals3, SerialNumber, Contract3Tariffs.TariffScheme.EnergyFlowImport));
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.Error.WriteLine("Error getting contract 3 information");
-                                Console.Error.WriteLine(ex.Message);
-                            }
+                        PersonalizedResult Result;
+                        if (connection == "i")
+                        {
+                            Result = GetBillings_TCPIP(ProtocolIEC870REE, contract1, contract2, contract3, DateFrom, DateTo);
+                        }
+                        else
+                        {
+                            CPortConfigGSM configured_port = ConfigPortGSM();
+                            ProtocolIEC870REE.SetPortConfig(configured_port);
+                            Result = GetBillings_TCPIP(ProtocolIEC870REE, contract1, contract2, contract3, DateFrom, DateTo);
+                        }
 
-                        PersonalizedResult Result = new PersonalizedResult(results);
                         json_result = new JavaScriptSerializer().Serialize(Result);
                     }
                     else if (option == "p")
