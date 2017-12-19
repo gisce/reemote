@@ -181,9 +181,12 @@ namespace GISCE.Net
                 if (option != "")
                 {
                     ProtocolIEC870REE.OpenPort();
-                    ProtocolIEC870REE.OpenSession();
 
-                    int SerialNumber = ProtocolIEC870REE.GetSerialNumber();
+                    if (connection == "i")
+                    {
+                        ProtocolIEC870REE.OpenSession();
+                    }
+
                     if (option == "b")
                     {
                         List<PersonalizedTotals> results = new List<PersonalizedTotals>();
@@ -232,12 +235,14 @@ namespace GISCE.Net
                         PersonalizedProfiles Result = new PersonalizedProfiles(Profiles, SerialNumber);
                         json_result = new JavaScriptSerializer().Serialize(Result);
                     }
+                    if (connection == "i")
+                    {
+                        try {
+                            ProtocolIEC870REE.CloseSession();
+                        }
+                        catch (PROTOCOL_IEC870REE_RESULT) {
 
-                    try {
-                        ProtocolIEC870REE.CloseSession();
-                    }
-                    catch (PROTOCOL_IEC870REE_RESULT) {
-
+                        }
                     }
                     ProtocolIEC870REE.ClosePort();
                 }
