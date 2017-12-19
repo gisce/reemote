@@ -50,6 +50,7 @@ namespace GISCE.Net
             bool show_help = false;
             string ip_address = "";
             string option = "";
+            string connection = "";
             int port = 0;
             int pass = 0;
             byte request = 2;
@@ -63,6 +64,8 @@ namespace GISCE.Net
             var p = new OptionSet () {
                 { "h|help",  "Shows this message and exits.",
                   v => show_help = v != null },
+                { "c|connection=", "The type of connection to establich (m -> GSM/RTC | i -> IP).",
+                  v => connection=v },
                 { "b", "To request for billings.",
                   v => option="b" },
                 { "p", "To request for profiles.",
