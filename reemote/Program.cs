@@ -69,6 +69,20 @@ namespace GISCE.Net
             return PortConfigGSM;
         }
 
+        static CProtocolIEC870REEConnection ConfigConnection (short link_addr, short mpoint_addr, int pass)
+        {
+            CProtocolIEC870REEConnection ProtocolIEC870REEConnection = new CProtocolIEC870REEConnection();
+            ProtocolIEC870REEConnection.LinkAddress = link_addr;
+            ProtocolIEC870REEConnection.MeasuringPointAddress = mpoint_addr;
+            ProtocolIEC870REEConnection.Password = pass;
+            ProtocolIEC870REEConnection.OpenSessionRetries = 5;
+            ProtocolIEC870REEConnection.OpenSessionTimeout = 2000;
+            ProtocolIEC870REEConnection.MacLayerRetries = 3;
+            ProtocolIEC870REEConnection.MacLayerRetriesDelay = 1000;
+
+            return ProtocolIEC870REEConnection;
+        }
+
         static void Main(string[] args)
         {
 
