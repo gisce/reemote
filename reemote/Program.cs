@@ -83,9 +83,10 @@ namespace GISCE.Net
             return ProtocolIEC870REEConnection;
         }
 
-        static PersonalizedResult GetBillings_TCPIP (CProtocolIEC870REE ProtocolIEC870REE, bool contract1, bool contract2, bool contract3, CTimeInfo DateFrom, CTimeInfo DateTo, int serial)
+        static PersonalizedResult GetBillings_TCPIP (CProtocolIEC870REE ProtocolIEC870REE, bool contract1, bool contract2, bool contract3, CTimeInfo DateFrom, CTimeInfo DateTo)
         {
             List<PersonalizedTotals> results = new List<PersonalizedTotals>();
+            int serial = ProtocolIEC870REE.GetSerialNumber();
             if (contract1)
                 try{
                     CContract Contract1Tariffs = ProtocolIEC870REE.GetContractTariffs(1, true);
@@ -122,8 +123,9 @@ namespace GISCE.Net
             PersonalizedResult Result = new PersonalizedResult(results);
             return Result;
         }
-        static PersonalizedProfiles GetProfiles_TCPIP (CProtocolIEC870REE ProtocolIEC870REE, CTimeInfo DateFrom, CTimeInfo DateTo, int serial, byte request)
+        static PersonalizedProfiles GetProfiles_TCPIP (CProtocolIEC870REE ProtocolIEC870REE, CTimeInfo DateFrom, CTimeInfo DateTo, byte request)
         {
+            int serial = ProtocolIEC870REE.GetSerialNumber();
             CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(request, 1, false, DateFrom, DateTo);
             PersonalizedProfiles Result = new PersonalizedProfiles(Profiles, serial);
             return Result;
@@ -221,7 +223,7 @@ namespace GISCE.Net
                 (byte)DateFromArg.Hour, (byte)DateFromArg.Minute, (byte)DateFromArg.Second, (short)DateFromArg.Millisecond);
                 CTimeInfo DateTo = new CTimeInfo((short)DateToArg.Year, (byte)DateToArg.Month, (byte)DateToArg.Day,
                 (byte)DateToArg.Hour, (byte)DateToArg.Minute, (byte)DateToArg.Second, (short)DateToArg.Millisecond);
-                int SerialNumber;
+
                 string json_result = "ERROR: No result generated! You may need to specify a request.";
                 if (option != "")
                 {
@@ -230,7 +232,6 @@ namespace GISCE.Net
                     if (connection == "i")
                     {
                         ProtocolIEC870REE.OpenSession();
-                        SerialNumber = ProtocolIEC870REE.GetSerialNumber();
                     }
 
                     if (option == "b")
@@ -238,13 +239,13 @@ namespace GISCE.Net
                         PersonalizedResult Result;
                         if (connection == "i")
                         {
-                            Result = GetBillings_TCPIP(ProtocolIEC870REE, contract1, contract2, contract3, DateFrom, DateTo, SerialNumber);
+                            Result = GetBillings_TCPIP(ProtocolIEC870REE, contract1, contract2, contract3, DateFrom, DateTo);
                         }
                         else
                         {
                             CPortConfigGSM configured_port = ConfigPortGSM();
                             ProtocolIEC870REE.SetPortConfig(configured_port);
-                            Result = GetBillings_TCPIP(ProtocolIEC870REE, contract1, contract2, contract3, DateFrom, DateTo, SerialNumber);
+                            Result = GetBillings_TCPIP(ProtocolIEC870REE, contract1, contract2, contract3, DateFrom, DateTo);
                         }
 
                         json_result = new JavaScriptSerializer().Serialize(Result);
@@ -254,10 +255,10 @@ namespace GISCE.Net
                         PersonalizedProfiles Result;
                         if (connection == "i")
                         {
-                            Result = GetProfiles_TCPIP(ProtocolIEC870REE, DateFrom, DateTo, SerialNumber, request);
+                            Result = GetProfiles_TCPIP(ProtocolIEC870REE, DateFrom, DateTo, request);
                         }
                         else{
-                            Result = GetProfiles_TCPIP(ProtocolIEC870REE, DateFrom, DateTo, SerialNumber, request);
+                            Result = GetProfiles_TCPIP(ProtocolIEC870REE, DateFrom, DateTo, request);
                         }
                         json_result = new JavaScriptSerializer().Serialize(Result);
                     }
