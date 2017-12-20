@@ -44,6 +44,45 @@ namespace GISCE.Net
             p.WriteOptionDescriptions (Console.Out);
         }
 
+        static CProtocolIEC870REEConnection ConfigConnection (short link_addr, short mpoint_addr, int pass)
+        {
+            CProtocolIEC870REEConnection ProtocolIEC870REEConnection = new CProtocolIEC870REEConnection();
+            ProtocolIEC870REEConnection.LinkAddress = link_addr;
+            ProtocolIEC870REEConnection.MeasuringPointAddress = mpoint_addr;
+            ProtocolIEC870REEConnection.Password = pass;
+            ProtocolIEC870REEConnection.OpenSessionRetries = 5;
+            ProtocolIEC870REEConnection.OpenSessionTimeout = 2000;
+            ProtocolIEC870REEConnection.MacLayerRetries = 3;
+            ProtocolIEC870REEConnection.MacLayerRetriesDelay = 1000;
+
+            return ProtocolIEC870REEConnection;
+        }
+
+        static CPortConfigTCPIP ConfigPortTCPIP (string ip_address, int port)
+        {
+            CPortConfigTCPIP PortConfigTCPIP = new CPortConfigTCPIP();
+            PortConfigTCPIP.IPAddress = ip_address;
+            PortConfigTCPIP.IPPort = port;
+            PortConfigTCPIP.Timeout = 2000;
+
+            return PortConfigTCPIP;
+        }
+
+        static CPortConfigGSM ConfigPortGSM ()
+        {
+            CPortConfigGSM PortConfigGSM = new CPortConfigGSM();
+            PortConfigGSM.Name = "USB0";
+            PortConfigGSM.Baudrate = new PORT_BAUDRATE(PORT_BAUDRATE.PORT_BAUDRATE_9600);
+            PortConfigGSM.Databits = new PORT_DATABITS(PORT_DATABITS.PORT_DATABITS_8);
+            PortConfigGSM.Parity = new PORT_PARITY(PORT_PARITY.PORT_PARITY_NOPARITY);
+            PortConfigGSM.Stopbits = new PORT_STOPBITS(PORT_STOPBITS.PORT_STOPBITS_ONESTOPBIT);
+            PortConfigGSM.Timeout = 10000;
+            PortConfigGSM.ConnectionTimeout = 60000;
+            PortConfigGSM.DisconnectionTimeout = 5000;
+
+            return PortConfigGSM;
+        }
+
         static void Main(string[] args)
         {
 
@@ -120,15 +159,22 @@ namespace GISCE.Net
                 PortConfigTCPIP.IPPort = port;
                 PortConfigTCPIP.Timeout = 2000;
                 ProtocolIEC870REE.SetPortConfig(PortConfigTCPIP);
+                if (connection == "i")
+                {
+                    CPortConfigTCPIP configured_port = ConfigPortTCPIP(ip_address, port);
+                    ProtocolIEC870REE.SetPortConfig(configured_port);
+                }
+                else if (connection == "m")
+                {
+                    CPortConfigGSM configured_port = ConfigPortGSM();
+                    ProtocolIEC870REE.SetPortConfig(configured_port);
+                }
+                else{
+                    // TODO: print error message
+                    return;
+                }
 
-                CProtocolIEC870REEConnection ProtocolIEC870REEConnection = new CProtocolIEC870REEConnection();
-                ProtocolIEC870REEConnection.LinkAddress = link_addr;
-                ProtocolIEC870REEConnection.MeasuringPointAddress = mpoint_addr;
-                ProtocolIEC870REEConnection.Password = pass;
-                ProtocolIEC870REEConnection.OpenSessionRetries = 5;
-                ProtocolIEC870REEConnection.OpenSessionTimeout = 2000;
-                ProtocolIEC870REEConnection.MacLayerRetries = 3;
-                ProtocolIEC870REEConnection.MacLayerRetriesDelay = 1000;
+                CProtocolIEC870REEConnection ProtocolIEC870REEConnection = ConfigConnection(link_addr, mpoint_addr, pass);
                 ProtocolIEC870REE.SetConnectionConfig(ProtocolIEC870REEConnection);
 
                 CTimeInfo DateFrom = new CTimeInfo((short)DateFromArg.Year, (byte)DateFromArg.Month, (byte)DateFromArg.Day,
