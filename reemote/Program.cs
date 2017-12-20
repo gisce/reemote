@@ -44,15 +44,102 @@ namespace GISCE.Net
             p.WriteOptionDescriptions (Console.Out);
         }
 
+        static CPortConfigTCPIP ConfigPortTCPIP (string ip_address, int port)
+        {
+            CPortConfigTCPIP PortConfigTCPIP = new CPortConfigTCPIP();
+            PortConfigTCPIP.IPAddress = ip_address;
+            PortConfigTCPIP.IPPort = port;
+            PortConfigTCPIP.Timeout = 2000;
+
+            return PortConfigTCPIP;
+        }
+
+        static CPortConfigGSM ConfigPortGSM ()
+        {
+            CPortConfigGSM PortConfigGSM = new CPortConfigGSM();
+            // PortConfigGSM.Name = "COM3";
+            // PortConfigGSM.Baudrate = new PORT_BAUDRATE(PORT_BAUDRATE.PORT_BAUDRATE_9600);
+            // PortConfigGSM.Databits = new PORT_DATABITS(PORT_DATABITS.PORT_DATABITS_8);
+            // PortConfigGSM.Parity = new PORT_PARITY(PORT_PARITY.PORT_PARITY_NOPARITY);
+            // PortConfigGSM.Stopbits = new PORT_STOPBITS(PORT_STOPBITS.PORT_STOPBITS_ONESTOPBIT);
+            // PortConfigGSM.Timeout = 10000;
+            // PortConfigGSM.ConnectionTimeout = 60000;
+            // PortConfigGSM.DisconnectionTimeout = 5000;
+
+            return PortConfigGSM;
+        }
+
+        static CProtocolIEC870REEConnection ConfigConnection (short link_addr, short mpoint_addr, int pass)
+        {
+            CProtocolIEC870REEConnection ProtocolIEC870REEConnection = new CProtocolIEC870REEConnection();
+            ProtocolIEC870REEConnection.LinkAddress = link_addr;
+            ProtocolIEC870REEConnection.MeasuringPointAddress = mpoint_addr;
+            ProtocolIEC870REEConnection.Password = pass;
+            ProtocolIEC870REEConnection.OpenSessionRetries = 5;
+            ProtocolIEC870REEConnection.OpenSessionTimeout = 2000;
+            ProtocolIEC870REEConnection.MacLayerRetries = 3;
+            ProtocolIEC870REEConnection.MacLayerRetriesDelay = 1000;
+
+            return ProtocolIEC870REEConnection;
+        }
+
+        static PersonalizedResult GetBillings_TCPIP (CProtocolIEC870REE ProtocolIEC870REE, bool contract1, bool contract2, bool contract3, CTimeInfo DateFrom, CTimeInfo DateTo)
+        {
+            List<PersonalizedTotals> results = new List<PersonalizedTotals>();
+            int serial = ProtocolIEC870REE.GetSerialNumber();
+            if (contract1)
+                try{
+                    CContract Contract1Tariffs = ProtocolIEC870REE.GetContractTariffs(1, true);
+                    CTotals Totals1 = ProtocolIEC870REE.ReadTotalsHistory(1, DateFrom, DateTo);
+                    results.Add(new PersonalizedTotals(Totals1, serial, Contract1Tariffs.TariffScheme.EnergyFlowImport));
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine("Error getting contract 1 information");
+                    Console.Error.WriteLine(ex.Message);
+                }
+            if (contract2)
+                try{
+                    CContract Contract2Tariffs = ProtocolIEC870REE.GetContractTariffs(2, true);
+                    CTotals Totals2 = ProtocolIEC870REE.ReadTotalsHistory(2, DateFrom, DateTo);
+                    results.Add(new PersonalizedTotals(Totals2, serial, Contract2Tariffs.TariffScheme.EnergyFlowImport));
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine("Error getting contract 2 information");
+                    Console.Error.WriteLine(ex.Message);
+                }
+            if (contract3)
+                try{
+                    CContract Contract3Tariffs = ProtocolIEC870REE.GetContractTariffs(3, true);
+                    CTotals Totals3 = ProtocolIEC870REE.ReadTotalsHistory(3, DateFrom, DateTo);
+                    results.Add(new PersonalizedTotals(Totals3, serial, Contract3Tariffs.TariffScheme.EnergyFlowImport));
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine("Error getting contract 3 information");
+                    Console.Error.WriteLine(ex.Message);
+                }
+            PersonalizedResult Result = new PersonalizedResult(results);
+            return Result;
+        }
+        static PersonalizedProfiles GetProfiles_TCPIP (CProtocolIEC870REE ProtocolIEC870REE, CTimeInfo DateFrom, CTimeInfo DateTo, byte request)
+        {
+            int serial = ProtocolIEC870REE.GetSerialNumber();
+            CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(request, 1, false, DateFrom, DateTo);
+            PersonalizedProfiles Result = new PersonalizedProfiles(Profiles, serial);
+            return Result;
+        }
         static void Main(string[] args)
         {
 
             bool show_help = false;
             string ip_address = "";
             string option = "";
+            string connection = "";
             int port = 0;
             int pass = 0;
-            byte request = 2;
+            byte request = 1;
             bool contract1 = false;
             bool contract2 = false;
             bool contract3 = false;
@@ -63,6 +150,8 @@ namespace GISCE.Net
             var p = new OptionSet () {
                 { "h|help",  "Shows this message and exits.",
                   v => show_help = v != null },
+                { "c|connection=", "The type of connection to establich (m -> GSM/RTC | i -> IP).",
+                  v => connection=v },
                 { "b", "To request for billings.",
                   v => option="b" },
                 { "p", "To request for profiles.",
@@ -112,20 +201,22 @@ namespace GISCE.Net
                 String LicenseMachine = Environment.GetEnvironmentVariable("DAIZACOM_LICENSE_MACHINE");
                 ProtocolIEC870REE = new CProtocolIEC870REE(LicenseMachine, LicensePackage);
 
-                CPortConfigTCPIP PortConfigTCPIP = new CPortConfigTCPIP();
-                PortConfigTCPIP.IPAddress = ip_address;
-                PortConfigTCPIP.IPPort = port;
-                PortConfigTCPIP.Timeout = 2000;
-                ProtocolIEC870REE.SetPortConfig(PortConfigTCPIP);
+                if (connection == "i")
+                {
+                    CPortConfigTCPIP configured_port = ConfigPortTCPIP(ip_address, port);
+                    ProtocolIEC870REE.SetPortConfig(configured_port);
+                }
+                else if (connection == "m")
+                {
+                    CPortConfigGSM configured_port = ConfigPortGSM();
+                    ProtocolIEC870REE.SetPortConfig(configured_port);
+                }
+                else{
+                    // TODO: print error message
+                    return;
+                }
 
-                CProtocolIEC870REEConnection ProtocolIEC870REEConnection = new CProtocolIEC870REEConnection();
-                ProtocolIEC870REEConnection.LinkAddress = link_addr;
-                ProtocolIEC870REEConnection.MeasuringPointAddress = mpoint_addr;
-                ProtocolIEC870REEConnection.Password = pass;
-                ProtocolIEC870REEConnection.OpenSessionRetries = 5;
-                ProtocolIEC870REEConnection.OpenSessionTimeout = 2000;
-                ProtocolIEC870REEConnection.MacLayerRetries = 3;
-                ProtocolIEC870REEConnection.MacLayerRetriesDelay = 1000;
+                CProtocolIEC870REEConnection ProtocolIEC870REEConnection = ConfigConnection(link_addr, mpoint_addr, pass);
                 ProtocolIEC870REE.SetConnectionConfig(ProtocolIEC870REEConnection);
 
                 CTimeInfo DateFrom = new CTimeInfo((short)DateFromArg.Year, (byte)DateFromArg.Month, (byte)DateFromArg.Day,
@@ -137,63 +228,48 @@ namespace GISCE.Net
                 if (option != "")
                 {
                     ProtocolIEC870REE.OpenPort();
-                    ProtocolIEC870REE.OpenSession();
 
-                    int SerialNumber = ProtocolIEC870REE.GetSerialNumber();
+                    if (connection == "i")
+                    {
+                        ProtocolIEC870REE.OpenSession();
+                    }
+
                     if (option == "b")
                     {
-                        List<PersonalizedTotals> results = new List<PersonalizedTotals>();
-                        // Get billings
-                        if (contract1)
-                            try{
-                                CContract Contract1Tariffs = ProtocolIEC870REE.GetContractTariffs(1, true);
-                                CTotals Totals1 = ProtocolIEC870REE.ReadTotalsHistory(1, DateFrom, DateTo);
-                                results.Add(new PersonalizedTotals(Totals1, SerialNumber, Contract1Tariffs.TariffScheme.EnergyFlowImport));
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.Error.WriteLine("Error getting contract 1 information");
-                                Console.Error.WriteLine(ex.Message);
-                            }
-                        if (contract2)
-                            try{
-                                CContract Contract2Tariffs = ProtocolIEC870REE.GetContractTariffs(2, true);
-                                CTotals Totals2 = ProtocolIEC870REE.ReadTotalsHistory(2, DateFrom, DateTo);
-                                results.Add(new PersonalizedTotals(Totals2, SerialNumber, Contract2Tariffs.TariffScheme.EnergyFlowImport));
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.Error.WriteLine("Error getting contract 2 information");
-                                Console.Error.WriteLine(ex.Message);
-                            }
-                        if (contract3)
-                            try{
-                                CContract Contract3Tariffs = ProtocolIEC870REE.GetContractTariffs(3, true);
-                                CTotals Totals3 = ProtocolIEC870REE.ReadTotalsHistory(3, DateFrom, DateTo);
-                                results.Add(new PersonalizedTotals(Totals3, SerialNumber, Contract3Tariffs.TariffScheme.EnergyFlowImport));
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.Error.WriteLine("Error getting contract 3 information");
-                                Console.Error.WriteLine(ex.Message);
-                            }
+                        PersonalizedResult Result;
+                        if (connection == "i")
+                        {
+                            Result = GetBillings_TCPIP(ProtocolIEC870REE, contract1, contract2, contract3, DateFrom, DateTo);
+                        }
+                        else
+                        {
+                            CPortConfigGSM configured_port = ConfigPortGSM();
+                            ProtocolIEC870REE.SetPortConfig(configured_port);
+                            Result = GetBillings_TCPIP(ProtocolIEC870REE, contract1, contract2, contract3, DateFrom, DateTo);
+                        }
 
-                        PersonalizedResult Result = new PersonalizedResult(results);
                         json_result = new JavaScriptSerializer().Serialize(Result);
                     }
                     else if (option == "p")
                     {
-                        // Get profiles
-                        CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(request, 1, false, DateFrom, DateTo);
-                        PersonalizedProfiles Result = new PersonalizedProfiles(Profiles, SerialNumber);
+                        PersonalizedProfiles Result;
+                        if (connection == "i")
+                        {
+                            Result = GetProfiles_TCPIP(ProtocolIEC870REE, DateFrom, DateTo, request);
+                        }
+                        else{
+                            Result = GetProfiles_TCPIP(ProtocolIEC870REE, DateFrom, DateTo, request);
+                        }
                         json_result = new JavaScriptSerializer().Serialize(Result);
                     }
+                    if (connection == "i")
+                    {
+                        try {
+                            ProtocolIEC870REE.CloseSession();
+                        }
+                        catch (PROTOCOL_IEC870REE_RESULT) {
 
-                    try {
-                        ProtocolIEC870REE.CloseSession();
-                    }
-                    catch (PROTOCOL_IEC870REE_RESULT) {
-
+                        }
                     }
                     ProtocolIEC870REE.ClosePort();
                 }
