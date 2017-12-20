@@ -60,6 +60,7 @@ namespace GISCE.Net
             short mpoint_addr = 0;
             DateTime DateFromArg = new DateTime();
             DateTime DateToArg = new DateTime();
+            string connection = "";
             var p = new OptionSet () {
                 { "h|help",  "Shows this message and exits.",
                   v => show_help = v != null },
@@ -67,6 +68,8 @@ namespace GISCE.Net
                   v => option="b" },
                 { "p", "To request for profiles.",
                   v => option="p" },
+                { "c|connection=", "The type of connection to establich (m -> GSM/RTC | i -> IP).",
+                  v => connection=v },
                 { "i|ip|ipaddr=", "The IP adress of the meter.",
                   v => ip_address=v },
                 { "o|port=", "The port of the meter.",
