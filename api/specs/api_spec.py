@@ -75,5 +75,6 @@ with description('API'):
                 assert response.status_code == 200
 
                 result = json.loads(response.data)
+                assert assert_response_main_fields(result)
                 assert not result['error'], "Call status must be fetched without errors!"
                 
