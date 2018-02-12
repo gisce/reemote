@@ -60,3 +60,8 @@ with description('API'):
             with it('must work as expected'):
                 response = self.app.post(self.url, data=self.parameters, follow_redirects=True)
                 assert response.status_code == 200
+
+                result = json.loads(response.data)
+                assert assert_response_main_fields(result)
+
+                
