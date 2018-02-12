@@ -14,3 +14,6 @@ class CallSchema(Schema):
     option = fields.Str()
     request = fields.String()
     contract = fields.List(fields.Int)
+
+class IPCallSchema(CallSchema):
+    ip = fields.String()
