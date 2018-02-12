@@ -64,4 +64,4 @@ with description('API'):
                 result = json.loads(response.data)
                 assert assert_response_main_fields(result)
 
-                
+                assert not result['error'], "Call enqueue must work!"
