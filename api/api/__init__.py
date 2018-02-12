@@ -53,13 +53,15 @@ class CallEnqueue(Resource):
             assert 'ip' in params or 'telephone_number' in params
 
             if 'ip' in params:
-                assert type(params['ip']) == str and params['ip'] != "", "IP address '{}' is not correct".format(params['ip'])
+                assert type(params['ip']) == str and params['ip'] != "", \
+                    "IP address '{}' is not correct".format(params['ip'])
                 # remote_wrapper = IPWrapper
                 remote_wrapper = ReemoteWrapper
                 schema = IPCallSchema
 
             else:
-                assert type(params['phone']) == str and params['phone'] != "", "Phone number '{}' is not correct".format(params['phone'])
+                assert type(params['phone']) == str and params['phone'] != "",\
+                    "Phone number '{}' is not correct".format(params['phone'])
                 remote_wrapper = ReemoteWrapper
                 schema = NumberCallSchema
             
@@ -74,7 +76,8 @@ class CallEnqueue(Resource):
             response.status_code = 422
             return response
 
-        job = g.queue.enqueue(call_using_custom_wrapper, remote_wrapper, call_params)
+        job = g.queue.enqueue(call_using_custom_wrapper, remote_wrapper,
+                              call_params)
 
         if job:
             return jsonify({
@@ -91,7 +94,8 @@ class CallStatus(Resource):
     def get(self, job_id):
 
         try:
-            assert type(job_id) == str and job_id, "Job ID '{}' is not correct".format(job_id)
+            assert type(job_id) == str and job_id, \
+                "Job ID '{}' is not correct".format(job_id)
 
         except AssertionError as e:
             response = jsonify({
