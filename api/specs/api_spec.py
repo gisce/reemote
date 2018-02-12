@@ -68,3 +68,8 @@ with description('API'):
 
                 job_id = result['id']
                 assert job_id, "Job ID must be fetched"
+
+                # Second part, fetch the status of enqueued ID
+                self.url = base_url + "/call/{}".format(job_id)
+                response = self.app.get(self.url, follow_redirects=True)
+                assert response.status_code == 200
