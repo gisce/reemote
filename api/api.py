@@ -86,6 +86,48 @@ class CallEnqueue(Resource):
         abort(500)
 
 
+class CallStatus(Resource):
+
+    def get(self, job_id):
+
+        try:
+            assert type(job_id) == str and job_id, "Job ID '{}' is not correct".format(job_id)
+
+        except AssertionError as e:
+            response = jsonify({
+                "error": True,
+                "message": "Error fetching job id",
+                'errors': {'parameter': e.args[0]},
+            })
+            response.status_code = 422
+            return response
+
+        job = g.queue.fetch_job(job_id)
+
+        if job:
+            return jsonify({
+                "error": False,
+                "id": job.id,
+                "status": {
+                    "state": job.status,
+                    "description": job.description,
+                    "ttl": job.ttl,
+                    "timeout": job.timeout,
+                    "result": job.result,
+                },
+                "message": "Job status fetched",
+            })
+
+        # Handle error
+        response = jsonify({
+            "error": True,
+            "id": job.id,
+            "message": "Job '{}' not found".format(job_id),
+        })
+        response.status_code = 500
+        return response
+
+
 class UserToken(Resource):
     def post(self):
         g.login_via_header = True
@@ -131,6 +173,7 @@ class UserPassword(SecuredResource):
 
 resources = [
     (CallEnqueue, '/call/'),
+    (CallStatus, '/call/<string:job_id>'),
     (UserToken, '/get_token'),
     (UserTokenValid, '/is_token_valid'),
     (UserPassword, '/user/password'),
