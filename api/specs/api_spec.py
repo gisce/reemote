@@ -65,3 +65,6 @@ with description('API'):
                 assert assert_response_main_fields(result)
 
                 assert not result['error'], "Call enqueue must work!"
+
+                job_id = result['id']
+                assert job_id, "Job ID must be fetched"
