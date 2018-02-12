@@ -17,3 +17,6 @@ class CallSchema(Schema):
 
 class IPCallSchema(CallSchema):
     ip = fields.String()
+
+class NumberCallSchema(CallSchema):
+    phone = fields.String()
