@@ -1,14 +1,16 @@
+# -*- coding: utf-8 -*-
 from time import sleep
-import base64
 
-from werkzeug.exceptions import MethodNotAllowed, RequestTimeout
+from werkzeug.exceptions import MethodNotAllowed
 from flask import jsonify, Response, g, abort, request
 from flask_restful import Resource, Api
 from flask_login import login_required, current_user
+# from login import check_login_user, token_valid
 
-from models import *
-from utils import ArgumentsParser
-from login import check_login_user, token_valid
+from pyreemote.telemeasure import ReemoteWrapper
+
+from schemas import IPCallSchema, NumberCallSchema
+from jobs import call_using_custom_wrapper
 
 
 class REEmoteApi(Api):
