@@ -56,3 +56,7 @@ with description('API'):
                 self.url = base_url + "/call/"
 
                 self.parameters = request_to_perform['call']
+
+            with it('must work as expected'):
+                response = self.app.post(self.url, data=self.parameters, follow_redirects=True)
+                assert response.status_code == 200
