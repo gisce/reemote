@@ -58,12 +58,12 @@ class ReemoteTCPIPWrapper(object):
 
             if 'REEMOTE_PATH' in os.environ:
                 self.reemote = urlparse(os.environ['REEMOTE_PATH'])
-                if not os.path.exists(self.reemote):
-                    raise ValueError('The designed path for the executable'
+                if self.reemote.scheme == 'file':
+                    if not os.path.exists(self.reemote.path):
+                        raise ValueError('The designed path for the executable'
                                      ' doesn\'t exist')
             else:
-                raise ValueError('Can\'t find the path to the Reemote '
-                                 'executable')
+                raise ValueError('Can\'t find the REEMOTE_PATH variable')
         else:
             raise ValueError(
                 'ERROR: Date format is wrong. Expected: %Y-%m-%dT%H:%M:%S'
@@ -74,7 +74,7 @@ class ReemoteTCPIPWrapper(object):
 
         if protocol == 'file':
             command = "mono {0} -i {1} -o {2} -l {3} -m {4} -w {5} " \
-                  "-f {6} -t {7}".format(self.reemote, self.ipaddr, self.port,
+                  "-f {6} -t {7}".format(self.reemote.path, self.ipaddr, self.port,
                                          self.link, self.mpoint, self.passwrd,
                                          self.datefrom, self.dateto)
             if self.option == "b":
@@ -91,11 +91,11 @@ class ReemoteTCPIPWrapper(object):
             stdout, stderr = proc.communicate()
 
             result = {
-            'error': True if stderr else False,
-            'message': json.loads(stdout),
-            'error_message': stderr,
+                'error': True if stderr else False,
+                'message': json.loads(stdout),
+                'error_message': stderr if stderr else None,
             }
-        else:
+        elif protocol == 'http':
             post_data = {
                 'ip': self.ipaddr,
                 'port': self.port,
@@ -115,7 +115,13 @@ class ReemoteTCPIPWrapper(object):
                     'message': response['message'],
                     'error_message': '',
                 }
-                
+        else:
+            result = {
+                    'error': True,
+                    'message': '',
+                    'error_message': 'REEMOTE_PATH protocol unknown',
+            }
+
         return result
 
 class ReemoteModemWrapper(object):
@@ -154,12 +160,12 @@ class ReemoteModemWrapper(object):
 
             if 'REEMOTE_PATH' in os.environ:
                 self.reemote = urlparse(os.environ['REEMOTE_PATH'])
-                if not os.path.exists(self.reemote):
-                    raise ValueError('The designed path for the executable'
+                if self.reemote.scheme == 'file':
+                    if not os.path.exists(self.reemote.path):
+                        raise ValueError('The designed path for the executable'
                                      ' doesn\'t exist')
             else:
-                raise ValueError('Can\'t find the path to the Reemote '
-                                 'executable')
+                raise ValueError('Can\'t find the REEMOTE_PATH variable')
         else:
             raise ValueError(
                 'ERROR: Date format is wrong. Expected: %Y-%m-%dT%H:%M:%S'
@@ -168,28 +174,53 @@ class ReemoteModemWrapper(object):
     def execute_request(self):
         protocol = self.reemote.scheme
 
-        command = "mono {0} -n {1} -o {2} -l {3} -m {4} -w {5} " \
-                  "-f {6} -t {7}".format(self.reemote, self.ipaddr, self.port,
-                                         self.link, self.mpoint, self.passwrd,
-                                         self.datefrom, self.dateto)
-        if self.option == "b":
-            command += " -b"
-            if self.contract:
-                for contract in self.contract:
-                    command += " -c{}".format(contract)
-            else:
-                command += " -c1 -c2 -c3"
-        elif self.option == "p":
-            command += " -p -r {0}".format(self.request)
-        
         if protocol == 'file':
-            proc = Popen(command.split(), stdout=PIPE, stderr=PIPE)
-            stdout, stderr = proc.communicate()
+            command = "mono {0} -n {1} -o {2} -l {3} -m {4} -w {5} " \
+                    "-f {6} -t {7}".format(self.reemote.path, self.phone, self.port,
+                                           self.link, self.mpoint, self.passwrd,
+                                           self.datefrom, self.dateto)
+            if self.option == "b":
+                command += " -b"
+                if self.contract:
+                    for contract in self.contract:
+                        command += " -c{}".format(contract)
+                else:
+                    command += " -c1 -c2 -c3"
+            elif self.option == "p":
+                command += " -p -r {0}".format(self.request)
+
+                proc = Popen(command.split(), stdout=PIPE, stderr=PIPE)
+                stdout, stderr = proc.communicate()
+
+            result = {
+                'error': True if stderr else False,
+                'message': json.loads(stdout),
+                'error_message': stderr,
+            }
+        elif protocol == 'http':
+            post_data = {
+                'number': self.phone,
+                'port': self.port,
+                'link_address': self.link_address,
+                'mpoint': self.mpoint
+            }
+            response = requests.post(self.reemote.geturl(), data=post_data)
+            if response['error']:
+                result = {
+                    'error': True,
+                    'message': response['message'],
+                    'error_message': response['errors'],
+                }
+            else:
+                result = {
+                    'error': False,
+                    'message': response['message'],
+                    'error_message': '',
+                }
         else:
-        
-        result = {
-            'error': True if stderr else False,
-            'message': json.loads(stdout),
-            'error_message': stderr,
-        }
+            result = {
+                    'error': True,
+                    'message': '',
+                    'error_message': 'REEMOTE_PATH protocol unknown',
+            }
         return result
