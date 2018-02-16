@@ -61,14 +61,43 @@ class ReemoteTCPIPWrapper(object):
                 if self.reemote.scheme == 'file':
                     if not os.path.exists(self.reemote.path):
                         raise ValueError('The designed path for the executable'
-                                     ' doesn\'t exist')
+                                         ' doesn\'t exist')
             else:
                 raise ValueError('Can\'t find the REEMOTE_PATH variable')
         else:
             raise ValueError(
                 'ERROR: Date format is wrong. Expected: %Y-%m-%dT%H:%M:%S'
             )
-    
+
+    def handle_file_request(self, command):
+        if self.option == "b":
+                command += " -b"
+                if self.contract:
+                    for contract in self.contract:
+                        command += " -c{}".format(contract)
+                else:
+                    command += " -c1 -c2 -c3"
+        elif self.option == "p":
+            command += " -p -r {0}".format(self.request)
+
+        proc = Popen(command.split(), stdout=PIPE, stderr=PIPE)
+        stdout, stderr = proc.communicate()
+        result = {
+            'error': True if stderr else False,
+            'message': '',
+            'error_message': stderr,
+        }
+        if stdout:
+            try:
+                result['message'] = json.loads(stdout)
+            except:
+                if result['error']:
+                    result['error_message'] = '{} {}'.format(stderr, 'ERROR: No JSON object could be decoded')
+                else:
+                    result['error'] = True
+                    result['error_message'] = 'ERROR: No JSON object could be decoded'
+        return result
+
     def execute_request(self):
         protocol = self.reemote.scheme
 
@@ -77,29 +106,13 @@ class ReemoteTCPIPWrapper(object):
                   "-f {6} -t {7}".format(self.reemote.path, self.ipaddr, self.port,
                                          self.link, self.mpoint, self.passwrd,
                                          self.datefrom, self.dateto)
-            if self.option == "b":
-                command += " -b"
-                if self.contract:
-                    for contract in self.contract:
-                        command += " -c{}".format(contract)
-                else:
-                    command += " -c1 -c2 -c3"
-            elif self.option == "p":
-                command += " -p -r {0}".format(self.request)
+            result = self.handle_file_request(command)
 
-            proc = Popen(command.split(), stdout=PIPE, stderr=PIPE)
-            stdout, stderr = proc.communicate()
-
-            result = {
-                'error': True if stderr else False,
-                'message': json.loads(stdout),
-                'error_message': stderr if stderr else None,
-            }
         elif protocol == 'http':
             post_data = {
                 'ip': self.ipaddr,
                 'port': self.port,
-                'link_address': self.link_address,
+                'link_address': self.link,
                 'mpoint': self.mpoint
             }
             response = requests.post(self.reemote.geturl(), data=post_data)
@@ -123,6 +136,7 @@ class ReemoteTCPIPWrapper(object):
             }
 
         return result
+
 
 class ReemoteModemWrapper(object):
 
@@ -163,7 +177,7 @@ class ReemoteModemWrapper(object):
                 if self.reemote.scheme == 'file':
                     if not os.path.exists(self.reemote.path):
                         raise ValueError('The designed path for the executable'
-                                     ' doesn\'t exist')
+                                         ' doesn\'t exist')
             else:
                 raise ValueError('Can\'t find the REEMOTE_PATH variable')
         else:
@@ -179,29 +193,13 @@ class ReemoteModemWrapper(object):
                     "-f {6} -t {7}".format(self.reemote.path, self.phone, self.port,
                                            self.link, self.mpoint, self.passwrd,
                                            self.datefrom, self.dateto)
-            if self.option == "b":
-                command += " -b"
-                if self.contract:
-                    for contract in self.contract:
-                        command += " -c{}".format(contract)
-                else:
-                    command += " -c1 -c2 -c3"
-            elif self.option == "p":
-                command += " -p -r {0}".format(self.request)
+            result = self.handle_file_request(command)
 
-                proc = Popen(command.split(), stdout=PIPE, stderr=PIPE)
-                stdout, stderr = proc.communicate()
-
-            result = {
-                'error': True if stderr else False,
-                'message': json.loads(stdout),
-                'error_message': stderr,
-            }
         elif protocol == 'http':
             post_data = {
                 'number': self.phone,
                 'port': self.port,
-                'link_address': self.link_address,
+                'link_address': self.link,
                 'mpoint': self.mpoint
             }
             response = requests.post(self.reemote.geturl(), data=post_data)
@@ -223,4 +221,33 @@ class ReemoteModemWrapper(object):
                     'message': '',
                     'error_message': 'REEMOTE_PATH protocol unknown',
             }
+        return result
+
+    def handle_file_request(self, command):
+        if self.option == "b":
+                command += " -b"
+                if self.contract:
+                    for contract in self.contract:
+                        command += " -c{}".format(contract)
+                else:
+                    command += " -c1 -c2 -c3"
+        elif self.option == "p":
+            command += " -p -r {0}".format(self.request)
+
+        proc = Popen(command.split(), stdout=PIPE, stderr=PIPE)
+        stdout, stderr = proc.communicate()
+        result = {
+            'error': True if stderr else False,
+            'message': '',
+            'error_message': stderr,
+        }
+        if stdout:
+            try:
+                result['message'] = json.loads(stdout)
+            except:
+                if result['error']:
+                    result['error_message'] = '{} {}'.format(stderr, 'ERROR: No JSON object could be decoded')
+                else:
+                    result['error'] = True
+                    result['error_message'] = 'ERROR: No JSON object could be decoded'
         return result
