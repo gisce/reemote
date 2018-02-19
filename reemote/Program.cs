@@ -99,7 +99,7 @@ namespace GISCE.Net
             short mpoint_addr = 0;
             DateTime DateFromArg = new DateTime();
             DateTime DateToArg = new DateTime();
-            string connection = "";
+            string phone = "";
             var p = new OptionSet () {
                 { "h|help",  "Shows this message and exits.",
                   v => show_help = v != null },
@@ -107,10 +107,10 @@ namespace GISCE.Net
                   v => option="b" },
                 { "p", "To request for profiles.",
                   v => option="p" },
-                { "c|connection=", "The type of connection to establich (m -> GSM/RTC | i -> IP).",
-                  v => connection=v },
                 { "i|ip|ipaddr=", "The IP adress of the meter.",
                   v => ip_address=v },
+                { "n|phone=", "The phone number of the meter.",
+                  v => phone=v },
                 { "o|port=", "The port of the meter.",
                   v => port=Int32.Parse(v) },
                 { "l|link=", "The LinkAddress of the connection.",
@@ -154,17 +154,12 @@ namespace GISCE.Net
                 String LicenseMachine = Environment.GetEnvironmentVariable("DAIZACOM_LICENSE_MACHINE");
                 ProtocolIEC870REE = new CProtocolIEC870REE(LicenseMachine, LicensePackage);
 
-                CPortConfigTCPIP PortConfigTCPIP = new CPortConfigTCPIP();
-                PortConfigTCPIP.IPAddress = ip_address;
-                PortConfigTCPIP.IPPort = port;
-                PortConfigTCPIP.Timeout = 2000;
-                ProtocolIEC870REE.SetPortConfig(PortConfigTCPIP);
-                if (connection == "i")
+                if (ip_address != "")
                 {
                     CPortConfigTCPIP configured_port = ConfigPortTCPIP(ip_address, port);
                     ProtocolIEC870REE.SetPortConfig(configured_port);
                 }
-                else if (connection == "m")
+                else if (phone != "")
                 {
                     CPortConfigGSM configured_port = ConfigPortGSM();
                     ProtocolIEC870REE.SetPortConfig(configured_port);
