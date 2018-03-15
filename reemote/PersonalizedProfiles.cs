@@ -69,15 +69,15 @@ namespace GISCE.Net.Profiles {
     {
         public string SerialNumber;
         public byte Number;
-        public bool Absolute;
+        public string Absolute;
         public string DateFrom;
         public string DateTo;
         public List<PersonalizedProfileRecord> Records;
-        public PersonalizedProfiles(CLoadProfile profiles, int SerialNumber, bool absolute, byte contract)
+        public PersonalizedProfiles(CLoadProfile profiles, int SerialNumber, Boolean absolute, byte contract)
         {
             this.SerialNumber = SerialNumber.ToString();
             Number = contract;
-            Absolute = absolute;
+            Absolute = absolute.ToString();
             DateFrom = profiles.DateFrom.ToString("yyyy-MM-dd HH:mm:ss");
             DateTo = profiles.DateTo.ToString("yyyy-MM-dd HH:mm:ss");
             Records = new List<PersonalizedProfileRecord>();
