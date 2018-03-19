@@ -7,7 +7,7 @@ from flask_restful import Resource, Api
 from flask_login import login_required, current_user
 # from login import check_login_user, token_valid
 
-from pyreemote.telemeasure import ReemoteWrapper
+from pyreemote.telemeasure import ReemoteTCPIPWrapper, ReemoteModemWrapper
 
 from schemas import IPCallSchema, NumberCallSchema
 from jobs import call_using_custom_wrapper
