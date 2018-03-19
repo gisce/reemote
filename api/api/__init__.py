@@ -52,13 +52,13 @@ class CallEnqueue(Resource):
 
         try:
             # IP or Telephone number must exist
-            assert 'ip' in params or 'telephone_number' in params
+            assert 'ipaddr' in params or 'number' in params
 
             if 'ip' in params:
-                assert type(params['ip']) == str and params['ip'] != "", \
-                    "IP address '{}' is not correct".format(params['ip'])
                 # remote_wrapper = IPWrapper
                 remote_wrapper = ReemoteWrapper
+                assert type(params['ipaddr']) == str and params['ipaddr'] != "", \
+                    "IP address '{}' is not correct".format(params['ipaddr'])
                 schema = IPCallSchema
 
             else:

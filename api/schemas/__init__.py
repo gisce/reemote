@@ -4,7 +4,7 @@ from marshmallow import Schema, fields
 class CallSchema(Schema):
     id = fields.Int()
     name = fields.Str()
-    
+
     port = fields.Int()
     link_address = fields.Int()
     mpoint = fields.Int()
@@ -16,7 +16,7 @@ class CallSchema(Schema):
     contract = fields.List(fields.Int)
 
 class IPCallSchema(CallSchema):
-    ip = fields.String()
+    ipaddr = fields.String()
 
 class NumberCallSchema(CallSchema):
     phone = fields.String()
