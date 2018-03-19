@@ -61,14 +61,16 @@ class CallEnqueue(Resource):
             assert 'ipaddr' in params or 'number' in params
 
             if 'ipaddr' in params:
-                assert type(params['ipaddr']) in [str, unicode] and params['ipaddr'] != "", \
-                    "IP address '{}' is not correct".format(params['ipaddr'])
+                assert isinstance(params['ipaddr'], basestring) and \
+                       params['ipaddr'] != "", "IP address '{}' is not correct"\
+                                                       .format(params['ipaddr'])
                 remote_wrapper = ReemoteTCPIPWrapper
                 schema = IPCallSchema
 
             else:
-                assert type(params['phone']) in [str, unicode] and params['phone'] != "",\
-                    "Phone number '{}' is not correct".format(params['phone'])
+                assert isinstance(params['phone'], basestring) and \
+                      params['phone'] != "", "Phone number '{}' is not correct"\
+                                                        .format(params['phone'])
                 remote_wrapper = ReemoteModemWrapper
                 schema = NumberCallSchema
 
@@ -101,7 +103,7 @@ class CallStatus(Resource):
     def get(self, job_id):
 
         try:
-            assert type(job_id) in [str, unicode] and job_id, \
+            assert isinstance(params['job_id'], basestring) and job_id, \
                 "Job ID '{}' is not correct".format(job_id)
 
         except AssertionError as e:
