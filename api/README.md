@@ -1,5 +1,13 @@
 # REEmote API
 
+This provides a REST API interface for the REEmote library.
+
+API specification can be reviewed at https://github.com/gisce/reemote/wiki/API
+
+Two main components are involved:
+- [The API app](#how-to-use-it)
+- [The API worker](#api-worker)
+
 ## How to use it?
 
 Install requirements:
