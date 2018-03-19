@@ -81,6 +81,13 @@ class ReemoteWrapper(object):
                 command += " -c1 -c2 -c3"
         elif self.option == "p":
             command += " -p -r {0}".format(self.request)
+        elif self.option == "d":
+            command += " -d -r 4"
+            if self.contract:
+                for contract in self.contract:
+                    command += " -c{}".format(contract)
+            else:
+                command += " -c1 -c2 -c3"
         logger.info(
             'Command that will be executed: {}'.format(command)
         )
