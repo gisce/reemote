@@ -11,13 +11,14 @@ from rq import Queue
 api = REEmoteApi(prefix='/api/v1')
 
 # metrics = Metrics()
+QUEUE_NAME = 'pyreemote-calls'
 
 
 def create_app(**config):
     """
-    Create a OficinaVirtual app
-    :param config: 
-    :return: OficinaVirtual app
+    Create a REEmote API app
+    :param config:
+    :return: REEmote API app
     """
     app = Flask(__name__, static_folder=None)
     app.config.update(config)
@@ -39,8 +40,8 @@ def create_app(**config):
 def configure_api(app):
     """
     Configure diffenrend API endpoints
-    :param app: Flask application 
-    :return: 
+    :param app: Flask application
+    :return:
     """
     from api import resources
     for resource in resources:
@@ -51,7 +52,7 @@ def configure_api(app):
 
 def setup_backend_conn():
     # **config_from_environment('REDIS')
-    queue = Queue('calls', connection=Redis())
+    queue = Queue(QUEUE_NAME, connection=Redis())
     g.queue = queue
 
 
