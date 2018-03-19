@@ -24,8 +24,13 @@ request_to_perform = {
     'call': {
         'ipaddr': "81.33.218.21",
         'port': 55,
-        'link_address': 3,
+        'link': 3,
         'mpoint': 5,
+        'passwrd': 5,
+        'datefrom': "2017-01-01T00:00:00",
+        'dateto': "2017-01-02T00:00:00",
+        'option': 5,
+        'request': 5,
     }
 }
 
@@ -75,5 +80,6 @@ with description('API'):
                 assert response.status_code == 200
 
                 result = json.loads(response.data)
+                print (result)
                 assert assert_response_main_fields(result)
                 assert not result['error'], "Call status must be fetched without errors!"
