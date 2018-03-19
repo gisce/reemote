@@ -110,10 +110,16 @@ class ReemoteTCPIPWrapper(object):
 
         elif protocol == 'http':
             post_data = {
-                'ip': self.ipaddr,
+                'ipaddr': self.ipaddr,
                 'port': self.port,
                 'link_address': self.link,
-                'mpoint': self.mpoint
+                'mpoint': self.mpoint,
+                'passwrd': self.passwrd,
+                'datefrom': self.datefrom,
+                'dateto': self.dateto,
+                'option': self.option,
+                'request': self.request,
+                'contract': self.contract
             }
             response = requests.post(self.reemote.geturl(), data=post_data)
             if response['error']:
@@ -126,7 +132,7 @@ class ReemoteTCPIPWrapper(object):
                 result = {
                     'error': False,
                     'message': response['message'],
-                    'error_message': '',
+                    'id': response['id'],
                 }
         else:
             result = {
@@ -197,10 +203,16 @@ class ReemoteModemWrapper(object):
 
         elif protocol == 'http':
             post_data = {
-                'number': self.phone,
+                'phone': self.phone,
                 'port': self.port,
                 'link_address': self.link,
-                'mpoint': self.mpoint
+                'mpoint': self.mpoint,
+                'passwrd': self.passwrd,
+                'datefrom': self.datefrom,
+                'dateto': self.dateto,
+                'option': self.option,
+                'request': self.request,
+                'contract': self.contract
             }
             response = requests.post(self.reemote.geturl(), data=post_data)
             if response['error']:
@@ -213,7 +225,7 @@ class ReemoteModemWrapper(object):
                 result = {
                     'error': False,
                     'message': response['message'],
-                    'error_message': '',
+                    'id': response['id'],
                 }
         else:
             result = {
