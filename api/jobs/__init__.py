@@ -3,3 +3,4 @@
 def call_using_custom_wrapper(wrapper, params):
     print (wrapper)
     print (params)
+    wrapper(**params)
