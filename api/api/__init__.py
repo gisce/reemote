@@ -12,6 +12,12 @@ from pyreemote.telemeasure import ReemoteTCPIPWrapper, ReemoteModemWrapper
 from schemas import IPCallSchema, NumberCallSchema
 from jobs import call_using_custom_wrapper
 
+# Python 2 and python3 compat for str type assertions
+try:
+  basestring
+except NameError:
+  basestring = str
+
 
 class REEmoteApi(Api):
     pass
