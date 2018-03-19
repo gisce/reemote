@@ -22,6 +22,14 @@ $ uwsgi api.ini --port X
 $ python app.py
 ```
 
+## API Worker
+
+Start a worker to process call requests with:
+```
+$ bash worker.sh
+```
+
+
 ## API definition
 
 See the wiki for the API specification: https://github.com/gisce/reemote/wiki/API
