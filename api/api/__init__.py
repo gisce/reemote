@@ -103,7 +103,7 @@ class CallStatus(Resource):
     def get(self, job_id):
 
         try:
-            assert isinstance(params['job_id'], basestring) and job_id, \
+            assert isinstance(job_id, basestring) and job_id, \
                 "Job ID '{}' is not correct".format(job_id)
 
         except AssertionError as e:
