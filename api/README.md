@@ -21,3 +21,7 @@ $ uwsgi api.ini --port X
 ```
 $ python app.py
 ```
+
+## API definition
+
+See the wiki for the API specification: https://github.com/gisce/reemote/wiki/API
