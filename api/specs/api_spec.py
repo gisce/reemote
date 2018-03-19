@@ -22,7 +22,7 @@ mandatory_main_elements = {
 
 request_to_perform = {
     'call': {
-        'ip': "81.33.218.290",
+        'ipaddr': "81.33.218.21",
         'port': 55,
         'link_address': 3,
         'mpoint': 5,
@@ -77,4 +77,3 @@ with description('API'):
                 result = json.loads(response.data)
                 assert assert_response_main_fields(result)
                 assert not result['error'], "Call status must be fetched without errors!"
-                

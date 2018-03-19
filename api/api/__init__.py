@@ -54,7 +54,7 @@ class CallEnqueue(Resource):
             # IP or Telephone number must exist
             assert 'ipaddr' in params or 'number' in params
 
-            if 'ip' in params:
+            if 'ipaddr' in params:
                 assert type(params['ipaddr']) == str and params['ipaddr'] != "", \
                     "IP address '{}' is not correct".format(params['ipaddr'])
                 remote_wrapper = ReemoteTCPIPWrapper
