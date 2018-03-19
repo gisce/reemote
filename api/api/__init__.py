@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import (division, absolute_import, print_function, unicode_literals)
+
 from werkzeug.exceptions import MethodNotAllowed
 from flask import jsonify, Response, g, abort, request
 from flask_restful import Resource, Api
