@@ -5,3 +5,4 @@ Flask-RESTful
 Marshmallow
 Redis
 RQ
+uwsgi
