@@ -55,18 +55,17 @@ class CallEnqueue(Resource):
             assert 'ipaddr' in params or 'number' in params
 
             if 'ip' in params:
-                # remote_wrapper = IPWrapper
-                remote_wrapper = ReemoteWrapper
                 assert type(params['ipaddr']) == str and params['ipaddr'] != "", \
                     "IP address '{}' is not correct".format(params['ipaddr'])
+                remote_wrapper = ReemoteTCPIPWrapper
                 schema = IPCallSchema
 
             else:
                 assert type(params['phone']) == str and params['phone'] != "",\
                     "Phone number '{}' is not correct".format(params['phone'])
-                remote_wrapper = ReemoteWrapper
+                remote_wrapper = ReemoteModemWrapper
                 schema = NumberCallSchema
-            
+
             call_params, validation_errors = schema().load(params)
 
         except AssertionError as e:
