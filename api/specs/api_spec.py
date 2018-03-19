@@ -10,13 +10,18 @@ from app import application
 import logging
 #logging.basicConfig(level=logging.DEBUG)
 
+# Python 2 and python3 compat for str type assertions
+try:
+  basestring
+except NameError:
+  basestring = str
 
 base_url = "/api/v1"
 
 mandatory_main_elements = {
     "error": bool,
-    "message": str,
-    "id": str,
+    "message": basestring,
+    "id": basestring,
 }
 
 
@@ -46,7 +51,7 @@ def assert_response_main_fields(response):
 
     for element, expected_type in mandatory_main_elements.items():
         assert element in response, "'{}' is not present in the response '{}'".format(element, response.keys())
-        assert type(response[element]) == expected_type, "'{}' is not present in the response '{}'".format(element, response.keys())
+        assert isinstance(response[element], expected_type), "'{}' is not present in the response '{}'".format(element, response.keys())
     return True
 
 
