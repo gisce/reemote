@@ -52,7 +52,7 @@ namespace GISCE.Net
             string option = "";
             int port = 0;
             int pass = 0;
-            byte request = 2;
+            byte request = 1;
             bool contract1 = false;
             bool contract2 = false;
             bool contract3 = false;
