@@ -50,6 +50,7 @@ namespace GISCE.Net
             bool show_help = false;
             string ip_address = "";
             string option = "";
+            string value = "";
             int port = 0;
             int pass = 0;
             byte request = 1;
@@ -69,6 +70,8 @@ namespace GISCE.Net
                   v => option="d" },
                 { "p", "To request for profiles.",
                   v => option="p" },
+                { "v|value=", "To get absolute(a) or incremental(i) values.",
+                  v => value=v },
                 { "i|ip|ipaddr=", "The IP adress of the meter.",
                   v => ip_address=v },
                 { "o|port=", "The port of the meter.",
@@ -194,6 +197,13 @@ namespace GISCE.Net
                     {
                         List<PersonalizedProfiles> results = new List<PersonalizedProfiles>();
                         bool absolute = false;
+                        if (value == "i")
+                            absolute = false;
+                        else if (value == "a")
+                            absolute = true;
+                        else {
+                            throw new System.ArgumentException("Wrong value type selected, indicate 'i' or 'a' with the -v flag");
+                        }
                         byte slow_request = CLoadProfile.REQUEST_SLOW_DAILY_RESUMES;
                         // Get billings
                         if (contract1)
