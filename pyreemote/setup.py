@@ -10,6 +10,7 @@ setup(
     author='GISCE-TI, S.L.',
     author_email='devel@gisce.net',
     install_requires=[
+        'requests',
     ],
     description='Pyhton wrapper for reemote'
 )
