@@ -71,14 +71,21 @@ class ReemoteTCPIPWrapper(object):
 
     def handle_file_request(self, command):
         if self.option == "b":
-                command += " -b"
-                if self.contract:
-                    for contract in self.contract:
-                        command += " -c{}".format(contract)
-                else:
-                    command += " -c1 -c2 -c3"
+            command += " -b"
+            if self.contract:
+                for contract in self.contract:
+                    command += " -c{}".format(contract)
+            else:
+                command += " -c1 -c2 -c3"
         elif self.option == "p":
             command += " -p -r {0}".format(self.request)
+        elif self.option == "d":
+            command += " -d -r 4"
+            if self.contract:
+                for contract in self.contract:
+                    command += " -c{}".format(contract)
+            else:
+                command += " -c1 -c2 -c3"
 
         proc = Popen(command.split(), stdout=PIPE, stderr=PIPE)
         stdout, stderr = proc.communicate()
@@ -237,14 +244,21 @@ class ReemoteModemWrapper(object):
 
     def handle_file_request(self, command):
         if self.option == "b":
-                command += " -b"
-                if self.contract:
-                    for contract in self.contract:
-                        command += " -c{}".format(contract)
-                else:
-                    command += " -c1 -c2 -c3"
+            command += " -b"
+            if self.contract:
+                for contract in self.contract:
+                    command += " -c{}".format(contract)
+            else:
+                command += " -c1 -c2 -c3"
         elif self.option == "p":
             command += " -p -r {0}".format(self.request)
+        elif self.option == "d":
+            command += " -d -r 4"
+            if self.contract:
+                for contract in self.contract:
+                    command += " -c{}".format(contract)
+            else:
+                command += " -c1 -c2 -c3"
 
         proc = Popen(command.split(), stdout=PIPE, stderr=PIPE)
         stdout, stderr = proc.communicate()
