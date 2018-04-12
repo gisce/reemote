@@ -56,6 +56,15 @@ namespace GISCE.Net.Profiles {
         }
     }
 
+    public class PersonalizedProfilesResult
+    {
+        public List<PersonalizedProfiles> Results;
+        public PersonalizedProfilesResult(List<PersonalizedProfiles> pprofiles)
+        {
+            Results = pprofiles;
+        }
+    }
+
     public class PersonalizedProfiles
     {
         public string SerialNumber;

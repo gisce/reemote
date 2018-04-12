@@ -178,15 +178,48 @@ namespace GISCE.Net
                                 Console.Error.WriteLine(ex.Message);
                             }
 
-                        PersonalizedResult Result = new PersonalizedResult(results);
+                        PersonalizedTotalsResult Result = new PersonalizedTotalsResult(results);
                         json_result = new JavaScriptSerializer().Serialize(Result);
                     }
                     else if (option == "p")
                     {
-                        // Get profiles
-                        CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(request, 1, false, DateFrom, DateTo);
-                        PersonalizedProfiles Result = new PersonalizedProfiles(Profiles, SerialNumber);
+                        List<PersonalizedProfiles> results = new List<PersonalizedProfiles>();
+                        if (contract1)
+                            try{
+                                CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(request, 1, false, DateFrom, DateTo);
+                                PersonalizedProfiles P_Profiles = new PersonalizedProfiles(Profiles, SerialNumber);
+                                results.Add(P_Profiles);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.Error.WriteLine("Error getting contract 1 information");
+                                Console.Error.WriteLine(ex.Message);
+                            }
+                        if (contract2)
+                            try{
+                                CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(request, 2, false, DateFrom, DateTo);
+                                PersonalizedProfiles P_Profiles = new PersonalizedProfiles(Profiles, SerialNumber);
+                                results.Add(P_Profiles);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.Error.WriteLine("Error getting contract 2 information");
+                                Console.Error.WriteLine(ex.Message);
+                            }
+                        if (contract3)
+                            try{
+                                CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(request, 3, false, DateFrom, DateTo);
+                                PersonalizedProfiles P_Profiles = new PersonalizedProfiles(Profiles, SerialNumber);
+                                results.Add(P_Profiles);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.Error.WriteLine("Error getting contract 3 information");
+                                Console.Error.WriteLine(ex.Message);
+                            }
+                        PersonalizedProfilesResult Result = new PersonalizedProfilesResult(results);
                         json_result = new JavaScriptSerializer().Serialize(Result);
+
                     }
 
                     try {

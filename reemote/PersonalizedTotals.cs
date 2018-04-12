@@ -10,10 +10,10 @@ namespace GISCE.Net.Readings {
             return DateTime.ParseExact(date, "yyyy/M/d H:m:s.f", CultureInfo.InvariantCulture).ToString("yyyy-MM-dd HH:mm:ss");
         }
     }
-    public class PersonalizedResult
+    public class PersonalizedTotalsResult
     {
         public List<PersonalizedTotals> Results;
-        public PersonalizedResult(List<PersonalizedTotals> ptotals)
+        public PersonalizedTotalsResult(List<PersonalizedTotals> ptotals)
         {
             Results = ptotals;
         }
