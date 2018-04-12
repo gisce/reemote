@@ -73,10 +73,10 @@ namespace GISCE.Net.Profiles {
         public string DateFrom;
         public string DateTo;
         public List<PersonalizedProfileRecord> Records;
-        public PersonalizedProfiles(CLoadProfile profiles, int SerialNumber)
+        public PersonalizedProfiles(CLoadProfile profiles, int SerialNumber, byte contract)
         {
             this.SerialNumber = SerialNumber.ToString();
-            Number = profiles.Number;
+            Number = contract;
             Absolute = profiles.Absolute;
             DateFrom = profiles.DateFrom.ToString("yyyy-MM-dd HH:mm:ss");
             DateTo = profiles.DateTo.ToString("yyyy-MM-dd HH:mm:ss");

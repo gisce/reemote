@@ -187,7 +187,7 @@ namespace GISCE.Net
                         if (contract1)
                             try{
                                 CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(request, 1, false, DateFrom, DateTo);
-                                PersonalizedProfiles P_Profiles = new PersonalizedProfiles(Profiles, SerialNumber);
+                                PersonalizedProfiles P_Profiles = new PersonalizedProfiles(Profiles, SerialNumber, 1);
                                 results.Add(P_Profiles);
                             }
                             catch (Exception ex)
@@ -198,7 +198,7 @@ namespace GISCE.Net
                         if (contract2)
                             try{
                                 CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(request, 2, false, DateFrom, DateTo);
-                                PersonalizedProfiles P_Profiles = new PersonalizedProfiles(Profiles, SerialNumber);
+                                PersonalizedProfiles P_Profiles = new PersonalizedProfiles(Profiles, SerialNumber, 2);
                                 results.Add(P_Profiles);
                             }
                             catch (Exception ex)
@@ -209,7 +209,7 @@ namespace GISCE.Net
                         if (contract3)
                             try{
                                 CLoadProfile Profiles = ProtocolIEC870REE.ReadLoadProfile(request, 3, false, DateFrom, DateTo);
-                                PersonalizedProfiles P_Profiles = new PersonalizedProfiles(Profiles, SerialNumber);
+                                PersonalizedProfiles P_Profiles = new PersonalizedProfiles(Profiles, SerialNumber, 3);
                                 results.Add(P_Profiles);
                             }
                             catch (Exception ex)
