@@ -54,7 +54,7 @@ class ReemoteTCPIPWrapper(object):
                     contract = list(contract)
                 self.contract = contract
             else:
-                self.contract = None
+                self.contract = []
 
             if 'REEMOTE_PATH' in os.environ:
                 self.reemote = urlparse(os.environ['REEMOTE_PATH'])
