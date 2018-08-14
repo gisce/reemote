@@ -54,7 +54,7 @@ class ReemoteTCPIPWrapper(object):
                     contract = list(contract)
                 self.contract = contract
             else:
-                self.contract = None
+                self.contract = []
 
             if 'REEMOTE_PATH' in os.environ:
                 self.reemote = urlparse(os.environ['REEMOTE_PATH'])
@@ -112,7 +112,7 @@ class ReemoteTCPIPWrapper(object):
             post_data = {
                 'ipaddr': self.ipaddr,
                 'port': self.port,
-                'link_address': self.link,
+                'link': self.link,
                 'mpoint': self.mpoint,
                 'passwrd': self.passwrd,
                 'datefrom': self.datefrom,
@@ -121,7 +121,8 @@ class ReemoteTCPIPWrapper(object):
                 'request': self.request,
                 'contract': self.contract
             }
-            response = requests.post(self.reemote.geturl(), data=post_data)
+            response = requests.post(self.reemote.geturl(), data=post_data, allow_redirects=True)
+            response = json.loads(response.content)
             if response['error']:
                 result = {
                     'error': True,
@@ -143,6 +144,10 @@ class ReemoteTCPIPWrapper(object):
 
         return result
 
+    def get_status(self, job_id):
+        url = self.reemote.geturl() + "{}".format(job_id)
+        response = requests.get(url)
+        return json.loads(response.content)
 
 class ReemoteModemWrapper(object):
 
