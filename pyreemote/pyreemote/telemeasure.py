@@ -5,11 +5,24 @@ import json
 import logging
 from datetime import datetime
 import os
-from urlparse import urlparse
+from urllib.parse import urlparse
 import requests
+import reeprotocol.ip
+import reeprotocol.protocol
 
 
 logger = logging.getLogger(__name__)
+
+MAGNITUDES = {
+    1: 'ai',
+    2: 'ae',
+    3: 'r1',
+    4: 'r2',
+    5: 'r3',
+    6: 'r4',
+    7: 'res7',
+    8: 'res8'
+}
 
 
 def validate(date_text):
@@ -20,6 +33,66 @@ def validate(date_text):
         return True
     except ValueError:
         return False
+
+
+def parse_billings(billings, contract, datefrom, dateto):
+    res = {
+        'Contract': contract,
+        'DateFrom': datefrom,
+        'DateTo': dateto,
+        'Totals': []
+    }
+
+    for billing_period in billings:
+        period = {
+            'Tariff': billing_period.address % 10,  # Get last digit of address
+            'Excess': billing_period.excess_power,
+            'MaximumDemandTimeStamp': billing_period.max_power_date,
+            'QualityMaximumDemand': billing_period.max_power_qual,
+            'MaximumDemand': billing_period.max_power,
+            'QualityReservedField8': billing_period.reserved_8_qual,
+            'ReservedField8': billing_period.reserved_8,
+            'QualityReservedField7': billing_period.reserved_7_qual,
+            'ReservedField7': billing_period.reserved_7,
+            'QualityReactiveCapacitiveEnergy': billing_period.reactive_qual_cap,
+            'ReactiveCapacitiveEnergyInc': billing_period.reactive_inc_cap,
+            'ReactiveCapacitiveEnergyAbs': billing_period.reactive_abs_cap,
+            'QualityReactiveInductiveEnergy': billing_period.reactive_qua_ind,
+            'ReactiveInductiveEnergyInc': billing_period.reactive_inc_ind,
+            'ReactiveInductiveEnergyAbs': billing_period.reactive_abs_ind,
+            'QualityActiveEnergy': billing_period.active_qual,
+            'ActiveEnergyInc': billing_period.active_inc,
+            'ActiveEnergyAbs': billing_period.active_abs,
+            'PeriodEnd': billing_period.date_end.strftime('%Y-%m-%dT%H:%M:%S'),
+            'PeriodStart': billing_period.date_start.strftime('%Y-%m-%dT%H:%M:%S'),
+            'QualityExcess': billing_period.ecxess_power_qual
+        }
+        res['Totals'].append(period)
+    return res
+
+
+def parse_profiles(profiles, datefrom, dateto):
+    res = {
+        'Number': 1,
+        'Absolute': False,
+        'DateFrom': datefrom,
+        'DateTo': dateto,
+        'Records': []
+    }
+    for hour_profile in profiles:
+        record = {
+            'TimeInfo': hour_profile[0].datetime,
+            'Channels': []
+        }
+        for channel in hour_profile:
+            channel = {
+                'Magnitude': MAGNITUDES[channel.address],
+                'Value': channel.total,
+                'Quality': channel.quality
+            }
+            record['Channels'].append(channel)
+        res['Records'].append(record)
+    return res
 
 
 class ReemoteTCPIPWrapper(object):
@@ -40,13 +113,15 @@ class ReemoteTCPIPWrapper(object):
         :param contract: List of contracts e.g:[1,3]
         """
         if validate(datefrom) and validate(dateto):
+            self.app_layer = None
+            self.physical_layer = None
             self.ipaddr = ipaddr
             self.port = port
             self.link = link
             self.mpoint = mpoint
             self.passwrd = passwrd
-            self.datefrom = datefrom
-            self.dateto = dateto
+            self.datefrom = datetime.strptime(datefrom, '%Y-%m-%dT%H:%M:%S')
+            self.dateto = datetime.strptime(dateto, '%Y-%m-%dT%H:%M:%S')
             self.option = option
             self.request = request
             if contract:
@@ -57,11 +132,10 @@ class ReemoteTCPIPWrapper(object):
                 self.contract = None
 
             if 'REEMOTE_PATH' in os.environ:
-                self.reemote = urlparse(os.environ['REEMOTE_PATH'])
-                if self.reemote.scheme == 'file':
-                    if not os.path.exists(self.reemote.path):
-                        raise ValueError('The designed path for the executable'
-                                         ' doesn\'t exist')
+                if os.environ['REEMOTE_PATH'] == 'local':
+                    self.reemote = 'local'
+                else:
+                    self.reemote = urlparse(os.environ['REEMOTE_PATH'])
             else:
                 raise ValueError('Can\'t find the REEMOTE_PATH variable')
         else:
@@ -69,46 +143,35 @@ class ReemoteTCPIPWrapper(object):
                 'ERROR: Date format is wrong. Expected: %Y-%m-%dT%H:%M:%S'
             )
 
-    def handle_file_request(self, command):
-        if self.option == "b":
-                command += " -b"
-                if self.contract:
-                    for contract in self.contract:
-                        command += " -c{}".format(contract)
-                else:
-                    command += " -c1 -c2 -c3"
-        elif self.option == "p":
-            command += " -p -r {0}".format(self.request)
-
-        proc = Popen(command.split(), stdout=PIPE, stderr=PIPE)
-        stdout, stderr = proc.communicate()
+    def handle_file_request(self):
+        output = ''
+        if self.app_layer:
+            if self.option == 'b':
+                if not self.contract:
+                    self.contract = [1, 2, 3]
+                output = self.get_billings()
+            elif self.option == 'p':
+                output = self.get_profiles()
         result = {
-            'error': True if stderr else False,
+            'error': True if not output else False,
             'message': '',
-            'error_message': stderr,
+            'error_message': 'No output received',
         }
-        if stdout:
+        if output:
             try:
-                result['message'] = json.loads(stdout)
+                result['message'] = output
+                result['error_message'] = ''
             except:
-                if result['error']:
-                    result['error_message'] = '{} {}'.format(stderr, 'ERROR: No JSON object could be decoded')
-                else:
-                    result['error'] = True
-                    result['error_message'] = 'ERROR: No JSON object could be decoded'
+                result['error'] = True
+                result['error_message'] = 'ERROR: No JSON object could be decoded'
         return result
 
     def execute_request(self):
-        protocol = self.reemote.scheme
+        if self.reemote == 'local':
+            result = self.handle_file_request()
+            self.close_connection()
 
-        if protocol == 'file':
-            command = "mono {0} -i {1} -o {2} -l {3} -m {4} -w {5} " \
-                  "-f {6} -t {7}".format(self.reemote.path, self.ipaddr, self.port,
-                                         self.link, self.mpoint, self.passwrd,
-                                         self.datefrom, self.dateto)
-            result = self.handle_file_request(command)
-
-        elif protocol == 'http':
+        elif self.reemote.scheme == 'http':
             post_data = {
                 'ipaddr': self.ipaddr,
                 'port': self.port,
@@ -142,6 +205,53 @@ class ReemoteTCPIPWrapper(object):
             }
 
         return result
+
+    def get_billings(self):
+        res = []
+        for contract in self.contract:
+            values = []
+            for resp in self.app_layer.stored_tariff_info(self.datefrom,
+                                                          self.dateto,
+                                                          register=contract):
+                values.extend(resp.content.valores)
+            aux = parse_billings(values, contract,
+                           self.datefrom.strftime('%Y-%m-%dT%H:%M:%S'),
+                           self.dateto.strftime('%Y-%m-%dT%H:%M:%S'))
+            res.append(aux)
+        return res
+
+    def get_profiles(self):
+        values = []
+        for resp in self.app_layer.read_hourly_profiles(self.datefrom,
+                                                        self.dateto):
+            values.append(resp.content.valores)
+        return parse_profiles(values, self.datefrom.strftime('%Y-%m-%dT%H:%M:%S')
+                             , self.dateto.strftime('%Y-%m-%dT%H:%M:%S'))
+
+    def establish_connection(self):
+        logging.info("Establishing connecyion...")
+        physical_layer = reeprotocol.ip.Ip((self.ipaddr, self.port))
+        link_layer = reeprotocol.protocol.LinkLayer(self.link, self.mpoint)
+        link_layer.initialize(physical_layer)
+        app_layer = reeprotocol.protocol.AppLayer()
+        app_layer.initialize(link_layer)
+
+        physical_layer.connect()
+        logging.info("Physical layer connected")
+        link_layer.link_state_request()
+        link_layer.remote_link_reposition()
+        logging.info("Authentication...")
+        resp = app_layer.authenticate(self.passwrd)
+        logging.info("CLIENT authentication response: {}".format(resp))
+
+        self.app_layer = app_layer
+        self.physical_layer = physical_layer
+
+    def close_connection(self):
+        logging.info("Closing connection...")
+        self.app_layer.finish_session()
+        self.physical_layer.disconnect()
+        logging.info("Disconnected")
 
 
 class ReemoteModemWrapper(object):
@@ -179,18 +289,17 @@ class ReemoteModemWrapper(object):
                 self.contract = None
 
             if 'REEMOTE_PATH' in os.environ:
-                self.reemote = urlparse(os.environ['REEMOTE_PATH'])
-                if self.reemote.scheme == 'file':
-                    if not os.path.exists(self.reemote.path):
-                        raise ValueError('The designed path for the executable'
-                                         ' doesn\'t exist')
+                if os.environ['REEMOTE_PATH'] == 'local':
+                    self.reemote = 'local'
+                else:
+                    self.reemote = urlparse(os.environ['REEMOTE_PATH'])
             else:
                 raise ValueError('Can\'t find the REEMOTE_PATH variable')
         else:
             raise ValueError(
                 'ERROR: Date format is wrong. Expected: %Y-%m-%dT%H:%M:%S'
             )
-    
+
     def execute_request(self):
         protocol = self.reemote.scheme
 
