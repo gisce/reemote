@@ -253,6 +253,13 @@ class ReemoteTCPIPWrapper(object):
         self.physical_layer.disconnect()
         logging.info("Disconnected")
 
+    @property
+    def connected(self):
+        if self.physical_layer is None:
+            return False
+        else:
+            return self.physical_layer.alive.is_set()
+
 
 class ReemoteModemWrapper(object):
 
