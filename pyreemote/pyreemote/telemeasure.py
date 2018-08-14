@@ -165,8 +165,16 @@ class ReemoteTCPIPWrapper(object):
 
     def execute_request(self):
         if self.reemote == 'local':
-            result = self.handle_file_request()
-            self.close_connection()
+            self.establish_connection()
+            if self.app_layer is not None and self.physical_layer is not None:
+                result = self.handle_file_request()
+                self.close_connection()
+            else:
+                return {
+                    'error': True,
+                    'message': '',
+                    'error_message': "Couldn't establish connection",
+                }
 
         elif self.reemote.scheme == 'http':
             post_data = {
@@ -226,7 +234,7 @@ class ReemoteTCPIPWrapper(object):
                              , self.dateto.strftime('%Y-%m-%dT%H:%M:%S'))
 
     def establish_connection(self):
-        logging.info("Establishing connecyion...")
+        logging.info("Establishing connection...")
         physical_layer = reeprotocol.ip.Ip((self.ipaddr, self.port))
         link_layer = reeprotocol.protocol.LinkLayer(self.link, self.mpoint)
         link_layer.initialize(physical_layer)
