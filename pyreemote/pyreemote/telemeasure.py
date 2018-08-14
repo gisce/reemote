@@ -132,12 +132,9 @@ class ReemoteTCPIPWrapper(object):
                 self.contract = None
 
             if 'REEMOTE_PATH' in os.environ:
-                if os.environ['REEMOTE_PATH'] == 'local':
-                    self.reemote = 'local'
-                else:
-                    self.reemote = urlparse(os.environ['REEMOTE_PATH'])
+                self.reemote = urlparse(os.environ['REEMOTE_PATH'])
             else:
-                raise ValueError('Can\'t find the REEMOTE_PATH variable')
+                self.reemote = 'local'
         else:
             raise ValueError(
                 'ERROR: Date format is wrong. Expected: %Y-%m-%dT%H:%M:%S'
