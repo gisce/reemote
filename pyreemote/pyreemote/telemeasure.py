@@ -35,11 +35,12 @@ def validate(date_text):
         return False
 
 
-def parse_billings(billings, contract, datefrom, dateto):
+def parse_billings(billings, contract, meter_serial, datefrom, dateto):
     res = {
         'Contract': contract,
         'DateFrom': datefrom,
         'DateTo': dateto,
+        'SerialNumber': meter_serial,
         'Totals': []
     }
 
@@ -71,12 +72,13 @@ def parse_billings(billings, contract, datefrom, dateto):
     return res
 
 
-def parse_profiles(profiles, datefrom, dateto):
+def parse_profiles(profiles, meter_serial, datefrom, dateto):
     res = {
         'Number': 1,
         'Absolute': False,
         'DateFrom': datefrom,
         'DateTo': dateto,
+        'SerialNumber': meter_serial,
         'Records': []
     }
     for hour_profile in profiles:
@@ -113,6 +115,7 @@ class ReemoteTCPIPWrapper(object):
         :param contract: List of contracts e.g:[1,3]
         """
         if validate(datefrom) and validate(dateto):
+            self.meter_serial = None
             self.app_layer = None
             self.physical_layer = None
             self.ipaddr = ipaddr
@@ -143,6 +146,10 @@ class ReemoteTCPIPWrapper(object):
     def handle_file_request(self):
         output = ''
         if self.app_layer:
+            if self.meter_serial is None:
+                resp = self.app_layer.get_info()
+                self.meter_serial = resp.content.codigo_equipo
+                print(self.meter_serial)
             if self.option == 'b':
                 if not self.contract:
                     self.contract = [1, 2, 3]
@@ -220,19 +227,21 @@ class ReemoteTCPIPWrapper(object):
                                                           self.dateto,
                                                           register=contract):
                 values.extend(resp.content.valores)
-            aux = parse_billings(values, contract,
-                           self.datefrom.strftime('%Y-%m-%dT%H:%M:%S'),
-                           self.dateto.strftime('%Y-%m-%dT%H:%M:%S'))
+            aux = parse_billings(values, contract, self.meter_serial,
+                                 self.datefrom.strftime('%Y-%m-%dT%H:%M:%S'),
+                                 self.dateto.strftime('%Y-%m-%dT%H:%M:%S'))
             res.append(aux)
         return res
 
     def get_profiles(self):
         values = []
-        for resp in self.app_layer.read_hourly_profiles(self.datefrom,
-                                                        self.dateto):
+        for resp in self.app_layer.read_incremental_values(self.datefrom,
+                                                           self.dateto,
+                                                           register='profiles'):
             values.append(resp.content.valores)
-        return parse_profiles(values, self.datefrom.strftime('%Y-%m-%dT%H:%M:%S')
-                             , self.dateto.strftime('%Y-%m-%dT%H:%M:%S'))
+        return parse_profiles(values, self.meter_serial,
+                              self.datefrom.strftime('%Y-%m-%dT%H:%M:%S'),
+                              self.dateto.strftime('%Y-%m-%dT%H:%M:%S'))
 
     def establish_connection(self):
         logging.info("Establishing connection...")
