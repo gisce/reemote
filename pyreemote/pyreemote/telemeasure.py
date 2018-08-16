@@ -14,14 +14,14 @@ import reeprotocol.protocol
 logger = logging.getLogger(__name__)
 
 MAGNITUDES = {
-    1: 'ai',
-    2: 'ae',
-    3: 'r1',
-    4: 'r2',
-    5: 'r3',
-    6: 'r4',
-    7: 'res7',
-    8: 'res8'
+    1: 'AI',
+    2: 'AE',
+    3: 'R1',
+    4: 'R2',
+    5: 'R3',
+    6: 'R4',
+    7: 'RES7',
+    8: 'RES8'
 }
 
 
