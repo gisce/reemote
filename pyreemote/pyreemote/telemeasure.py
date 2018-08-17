@@ -43,7 +43,8 @@ def parse_billings(billings, contract, meter_serial, datefrom, dateto):
         'Contract': contract,
         'DateFrom': datefrom,
         'DateTo': dateto,
-        'SerialNumber': meter_serial,
+        'Flow': 'Import',
+        'SerialNumber': str(meter_serial),
         'Totals': []
     }
 
@@ -51,7 +52,7 @@ def parse_billings(billings, contract, meter_serial, datefrom, dateto):
         period = {
             'Tariff': billing_period.address % 10,  # Get last digit of address
             'Excess': billing_period.excess_power,
-            'MaximumDemandTimeStamp': billing_period.max_power_date,
+            'MaximumDemandTimeStamp': billing_period.max_power_date.strftime('%Y-%m-%d %H:%M:%S'),
             'QualityMaximumDemand': billing_period.max_power_qual,
             'MaximumDemand': billing_period.max_power,
             'QualityReservedField8': billing_period.reserved_8_qual,
@@ -67,8 +68,8 @@ def parse_billings(billings, contract, meter_serial, datefrom, dateto):
             'QualityActiveEnergy': billing_period.active_qual,
             'ActiveEnergyInc': billing_period.active_inc,
             'ActiveEnergyAbs': billing_period.active_abs,
-            'PeriodEnd': billing_period.date_end.strftime('%Y-%m-%dT%H:%M:%S'),
-            'PeriodStart': billing_period.date_start.strftime('%Y-%m-%dT%H:%M:%S'),
+            'PeriodEnd': billing_period.date_end.strftime('%Y-%m-%d %H:%M:%S'),
+            'PeriodStart': billing_period.date_start.strftime('%Y-%m-%d %H:%M:%S'),
             'QualityExcess': billing_period.ecxess_power_qual
         }
         res['Totals'].append(period)
@@ -223,7 +224,7 @@ class ReemoteTCPIPWrapper(object):
         return result
 
     def get_billings(self):
-        res = []
+        res = {'Results': []}
         for contract in self.contract:
             values = []
             for resp in self.app_layer.stored_tariff_info(self.datefrom,
@@ -231,9 +232,9 @@ class ReemoteTCPIPWrapper(object):
                                                           register=contract):
                 values.extend(resp.content.valores)
             aux = parse_billings(values, contract, self.meter_serial,
-                                 self.datefrom.strftime('%Y-%m-%dT%H:%M:%S'),
-                                 self.dateto.strftime('%Y-%m-%dT%H:%M:%S'))
-            res.append(aux)
+                                 self.datefrom.strftime('%Y-%m-%d %H:%M:%S'),
+                                 self.dateto.strftime('%Y-%m-%d %H:%M:%S'))
+            res['Results'].append(aux)
         return res
 
     def get_profiles(self):
