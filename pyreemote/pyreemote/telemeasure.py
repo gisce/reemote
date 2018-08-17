@@ -5,7 +5,10 @@ import json
 import logging
 from datetime import datetime
 import os
-from urllib.parse import urlparse
+try:
+    from urllib.parse import urlparse
+except ImportError:
+     from urlparse import urlparse
 import requests
 import reeprotocol.ip
 import reeprotocol.protocol
