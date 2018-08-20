@@ -4,6 +4,7 @@ from subprocess import Popen, PIPE
 import json
 import logging
 from datetime import datetime
+from pytz import timezone
 import os
 try:
     from urllib.parse import urlparse
@@ -13,6 +14,7 @@ import requests
 import reeprotocol.ip
 import reeprotocol.protocol
 
+TIMEZONE = timezone('Europe/Madrid')
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +38,13 @@ def validate(date_text):
         return True
     except ValueError:
         return False
+
+
+def get_season(dt):
+    if dt.dst().seconds > 0:
+        return 'S'
+    else:
+        return 'W'
 
 
 def parse_billings(billings, contract, meter_serial, datefrom, dateto):
@@ -82,21 +91,24 @@ def parse_profiles(profiles, meter_serial, datefrom, dateto):
         'Absolute': False,
         'DateFrom': datefrom,
         'DateTo': dateto,
-        'SerialNumber': meter_serial,
+        'SerialNumber': str(meter_serial),
         'Records': []
     }
     for hour_profile in profiles:
+        date = hour_profile[0].datetime
         record = {
-            'TimeInfo': hour_profile[0].datetime,
+            'TimeInfo': date.strftime('%Y-%m-%d %H:%M:%S'),
+            'Season': get_season(TIMEZONE.localize(date)),
             'Channels': []
         }
         for channel in hour_profile:
-            channel = {
-                'Magnitude': MAGNITUDES[channel.address],
-                'Value': channel.total,
-                'Quality': channel.quality
-            }
-            record['Channels'].append(channel)
+            if channel.address not in [7, 8]:  # Skip RES7 and RES8 registers
+                channel = {
+                    'Magnitude': MAGNITUDES[channel.address],
+                    'Value': channel.total,
+                    'Quality': channel.quality
+                }
+                record['Channels'].append(channel)
         res['Records'].append(record)
     return res
 
@@ -244,27 +256,32 @@ class ReemoteTCPIPWrapper(object):
                                                            register='profiles'):
             values.append(resp.content.valores)
         return parse_profiles(values, self.meter_serial,
-                              self.datefrom.strftime('%Y-%m-%dT%H:%M:%S'),
-                              self.dateto.strftime('%Y-%m-%dT%H:%M:%S'))
+                              self.datefrom.strftime('%Y-%m-%d %H:%M:%S'),
+                              self.dateto.strftime('%Y-%m-%d %H:%M:%S'))
 
     def establish_connection(self):
-        logging.info("Establishing connection...")
-        physical_layer = reeprotocol.ip.Ip((self.ipaddr, self.port))
-        link_layer = reeprotocol.protocol.LinkLayer(self.link, self.mpoint)
-        link_layer.initialize(physical_layer)
-        app_layer = reeprotocol.protocol.AppLayer()
-        app_layer.initialize(link_layer)
+        try:
+            logging.info("Establishing connection...")
+            physical_layer = reeprotocol.ip.Ip((self.ipaddr, self.port))
+            link_layer = reeprotocol.protocol.LinkLayer(self.link, self.mpoint)
+            link_layer.initialize(physical_layer)
+            app_layer = reeprotocol.protocol.AppLayer()
+            app_layer.initialize(link_layer)
 
-        physical_layer.connect()
-        logging.info("Physical layer connected")
-        link_layer.link_state_request()
-        link_layer.remote_link_reposition()
-        logging.info("Authentication...")
-        resp = app_layer.authenticate(self.passwrd)
-        logging.info("CLIENT authentication response: {}".format(resp))
+            physical_layer.connect()
+            logging.info("Physical layer connected")
+            link_layer.link_state_request()
+            link_layer.remote_link_reposition()
+            logging.info("Authentication...")
+            resp = app_layer.authenticate(self.passwrd)
+            logging.info("CLIENT authentication response: {}".format(resp))
 
-        self.app_layer = app_layer
-        self.physical_layer = physical_layer
+            self.app_layer = app_layer
+            self.physical_layer = physical_layer
+        except Exception as e:
+            if self.connected:
+                self.close_connection()
+
 
     def close_connection(self):
         logging.info("Closing connection...")
