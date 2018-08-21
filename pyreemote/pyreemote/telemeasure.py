@@ -200,6 +200,7 @@ class ReemoteTCPIPWrapper(object):
                 }
 
         elif self.reemote.scheme == 'http':
+            logger.info('Sending request to API...')
             post_data = {
                 'ipaddr': self.ipaddr,
                 'port': self.port,
@@ -215,12 +216,14 @@ class ReemoteTCPIPWrapper(object):
             response = requests.post(self.reemote.geturl(), data=post_data, allow_redirects=True)
             response = json.loads(response.content)
             if response['error']:
+                logger.info('Received error message from API')
                 result = {
                     'error': True,
                     'message': response['message'],
                     'error_message': response['errors'],
                 }
             else:
+                logger.info('Received data without error from API')
                 result = {
                     'error': False,
                     'message': response['message'],
@@ -236,6 +239,7 @@ class ReemoteTCPIPWrapper(object):
         return result
 
     def get_billings(self):
+        logger.info('Requesting billings to device.')
         res = {'Results': []}
         for contract in self.contract:
             values = []
@@ -250,6 +254,7 @@ class ReemoteTCPIPWrapper(object):
         return res
 
     def get_profiles(self):
+        logger.info('Requesting profiles to device.')
         values = []
         for resp in self.app_layer.read_incremental_values(self.datefrom,
                                                            self.dateto,
@@ -261,7 +266,7 @@ class ReemoteTCPIPWrapper(object):
 
     def establish_connection(self):
         try:
-            logging.info("Establishing connection...")
+            logger.info('Establishing connection...')
             physical_layer = reeprotocol.ip.Ip((self.ipaddr, self.port))
             link_layer = reeprotocol.protocol.LinkLayer(self.link, self.mpoint)
             link_layer.initialize(physical_layer)
@@ -269,25 +274,25 @@ class ReemoteTCPIPWrapper(object):
             app_layer.initialize(link_layer)
 
             physical_layer.connect()
-            logging.info("Physical layer connected")
+            logger.info('Physical layer connected')
             link_layer.link_state_request()
             link_layer.remote_link_reposition()
-            logging.info("Authentication...")
+            logger.info('Authentication...')
             resp = app_layer.authenticate(self.passwrd)
-            logging.info("CLIENT authentication response: {}".format(resp))
+            logger.info('CLIENT authentication response: {}'.format(resp))
 
             self.app_layer = app_layer
             self.physical_layer = physical_layer
         except Exception as e:
+            logger.info('Connection failed. Exiting process...')
             if self.connected:
                 self.close_connection()
 
-
     def close_connection(self):
-        logging.info("Closing connection...")
+        logger.info('Closing connection...')
         self.app_layer.finish_session()
         self.physical_layer.disconnect()
-        logging.info("Disconnected")
+        logger.info('Disconnected')
 
     @property
     def connected(self):
