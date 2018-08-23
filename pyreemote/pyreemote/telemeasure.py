@@ -11,8 +11,8 @@ try:
 except ImportError:
      from urlparse import urlparse
 import requests
-import reeprotocol.ip
-import reeprotocol.protocol
+import iec870ree.ip
+import iec870ree.protocol
 
 TIMEZONE = timezone('Europe/Madrid')
 
@@ -267,10 +267,10 @@ class ReemoteTCPIPWrapper(object):
     def establish_connection(self):
         try:
             logger.info('Establishing connection...')
-            physical_layer = reeprotocol.ip.Ip((self.ipaddr, self.port))
-            link_layer = reeprotocol.protocol.LinkLayer(self.link, self.mpoint)
+            physical_layer = iec870ree.ip.Ip((self.ipaddr, self.port))
+            link_layer = iec870ree.protocol.LinkLayer(self.link, self.mpoint)
             link_layer.initialize(physical_layer)
-            app_layer = reeprotocol.protocol.AppLayer()
+            app_layer = iec870ree.protocol.AppLayer()
             app_layer.initialize(link_layer)
 
             physical_layer.connect()
