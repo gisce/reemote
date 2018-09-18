@@ -11,6 +11,7 @@ setup(
     author_email='devel@gisce.net',
     install_requires=[
         'requests',
+        'iec870ree',
     ],
-    description='Pyhton wrapper for reemote'
+    description='Python wrapper for iec870ree'
 )
