@@ -13,6 +13,7 @@ except ImportError:
 import requests
 import iec870ree.ip
 import iec870ree.protocol
+import reeprotocol_moxa.moxa
 
 TIMEZONE = timezone('Europe/Madrid')
 
@@ -283,6 +284,203 @@ class ReemoteTCPIPWrapper(object):
 
             self.app_layer = app_layer
             self.physical_layer = physical_layer
+        except Exception as e:
+            logger.info('Connection failed. Exiting process...')
+            if self.connected:
+                self.close_connection()
+
+    def close_connection(self):
+        logger.info('Closing connection...')
+        self.app_layer.finish_session()
+        self.physical_layer.disconnect()
+        logger.info('Disconnected')
+
+    @property
+    def connected(self):
+        if self.physical_layer is None:
+            return False
+        else:
+            return self.physical_layer.alive.is_set()
+
+    def get_status(self, job_id):
+        url = self.reemote.geturl() + "{}".format(job_id)
+        response = requests.get(url)
+        return json.loads(response.content)
+
+
+class ReemoteMOXAWrapper(object):
+
+    def __init__(self, ipaddr, port, phone, link, mpoint, passwrd, datefrom,
+                 dateto, option, request, contract=None):
+        """
+
+        :param ipaddr: Ip addres for the connection
+        :param port: Port for the connection
+        :param phone: Phone number
+        :param link: LinkAddress
+        :param mpoint: MeasuringPointAddress
+        :param passwrd: Password
+        :param datefrom: Date
+        :param dateto: Date
+        :param option: Either "b" for Billings or "p" for Profiles
+        :param request: Different types of request for the Profiles
+        :param contract: List of contracts e.g:[1,3]
+        """
+        if validate(datefrom) and validate(dateto):
+            self.meter_serial = None
+            self.app_layer = None
+            self.physical_layer = None
+            self.ipaddr = ipaddr
+            self.port = port
+            self.phone = phone
+            self.link = link
+            self.mpoint = mpoint
+            self.passwrd = passwrd
+            self.datefrom = datetime.strptime(datefrom, '%Y-%m-%dT%H:%M:%S')
+            self.dateto = datetime.strptime(dateto, '%Y-%m-%dT%H:%M:%S')
+            self.option = option
+            self.request = request
+            if contract:
+                if not isinstance(contract, list):
+                    contract = list(contract)
+                self.contract = contract
+            else:
+                self.contract = []
+
+            if 'REEMOTE_PATH' in os.environ:
+                self.reemote = urlparse(os.environ['REEMOTE_PATH'])
+            else:
+                self.reemote = 'local'
+        else:
+            raise ValueError(
+                'ERROR: Date format is wrong. Expected: %Y-%m-%dT%H:%M:%S'
+            )
+
+    def handle_file_request(self):
+        output = ''
+        if self.app_layer:
+            if self.meter_serial is None:
+                resp = self.app_layer.get_info()
+                self.meter_serial = resp.content.codigo_equipo
+                print(self.meter_serial)
+            if self.option == 'b':
+                if not self.contract:
+                    self.contract = [1, 2, 3]
+                output = self.get_billings()
+            elif self.option == 'p':
+                output = self.get_profiles()
+        result = {
+            'error': True if not output else False,
+            'message': '',
+            'error_message': 'No output received',
+        }
+        if output:
+            try:
+                result['message'] = output
+                result['error_message'] = ''
+            except:
+                result['error'] = True
+                result['error_message'] = 'ERROR: No JSON object could be decoded'
+        return result
+
+    def execute_request(self):
+        if self.reemote == 'local':
+            self.establish_connection()
+            if self.app_layer is not None and self.physical_layer is not None:
+                result = self.handle_file_request()
+                self.close_connection()
+            else:
+                return {
+                    'error': True,
+                    'message': '',
+                    'error_message': "Couldn't establish connection",
+                }
+
+        elif self.reemote.scheme == 'http':
+            logger.info('Sending request to API...')
+            post_data = {
+                'ipaddr': self.ipaddr,
+                'port': self.port,
+                'link': self.link,
+                'mpoint': self.mpoint,
+                'passwrd': self.passwrd,
+                'datefrom': self.datefrom,
+                'dateto': self.dateto,
+                'option': self.option,
+                'request': self.request,
+                'contract': self.contract
+            }
+            response = requests.post(self.reemote.geturl(), data=post_data, allow_redirects=True)
+            response = json.loads(response.content)
+            if response['error']:
+                logger.info('Received error message from API')
+                result = {
+                    'error': True,
+                    'message': response['message'],
+                    'error_message': response['errors'],
+                }
+            else:
+                logger.info('Received data without error from API')
+                result = {
+                    'error': False,
+                    'message': response['message'],
+                    'id': response['id'],
+                }
+        else:
+            result = {
+                    'error': True,
+                    'message': '',
+                    'error_message': 'REEMOTE_PATH protocol unknown',
+            }
+
+        return result
+
+    def get_billings(self):
+        logger.info('Requesting billings to device.')
+        res = {'Results': []}
+        for contract in self.contract:
+            values = []
+            for resp in self.app_layer.stored_tariff_info(self.datefrom,
+                                                          self.dateto,
+                                                          register=contract):
+                values.extend(resp.content.valores)
+            aux = parse_billings(values, contract, self.meter_serial,
+                                 self.datefrom.strftime('%Y-%m-%d %H:%M:%S'),
+                                 self.dateto.strftime('%Y-%m-%d %H:%M:%S'))
+            res['Results'].append(aux)
+        return res
+
+    def get_profiles(self):
+        logger.info('Requesting profiles to device.')
+        values = []
+        for resp in self.app_layer.read_incremental_values(self.datefrom,
+                                                           self.dateto,
+                                                           register='profiles'):
+            values.append(resp.content.valores)
+        return parse_profiles(values, self.meter_serial,
+                              self.datefrom.strftime('%Y-%m-%d %H:%M:%S'),
+                              self.dateto.strftime('%Y-%m-%d %H:%M:%S'))
+
+    def establish_connection(self):
+        try:
+            logger.info('Establishing connection...')
+            ip_layer = iec870ree.ip.Ip((self.ipaddr, self.port))
+            moxa_layer = reeprotocol_moxa.moxa.Moxa(self.phone, ip_layer)
+            link_layer = iec870ree.protocol.LinkLayer(self.link, self.mpoint)
+            link_layer.initialize(moxa_layer)
+            app_layer = iec870ree.protocol.AppLayer()
+            app_layer.initialize(link_layer)
+
+            moxa_layer.connect()
+            logger.info('MOXA physical layer connected')
+            link_layer.link_state_request()
+            link_layer.remote_link_reposition()
+            logger.info('Authentication...')
+            resp = app_layer.authenticate(self.passwrd)
+            logger.info('CLIENT authentication response: {}'.format(resp))
+
+            self.app_layer = app_layer
+            self.physical_layer = moxa_layer
         except Exception as e:
             logger.info('Connection failed. Exiting process...')
             if self.connected:

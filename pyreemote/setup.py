@@ -12,6 +12,7 @@ setup(
     install_requires=[
         'requests',
         'iec870ree',
+        'reeprotocol_moxa',
     ],
     description='Python wrapper for iec870ree'
 )
