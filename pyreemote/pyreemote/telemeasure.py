@@ -310,6 +310,16 @@ class ReemoteTCPIPWrapper(object):
 
 class ReemoteMOXAWrapper(ReemoteTCPIPWrapper):
 
+    def __init__(self, phone, ipaddr, port, link, mpoint, passwrd, datefrom,
+                 dateto, option, request, contract=None):
+        """
+        :param phone: Phone number
+        """
+        self.phone = phone
+        super(ReemoteMOXAWrapper, self).__init__(ipaddr, port, link, mpoint,
+                                                 passwrd, datefrom, dateto,
+                                                 option, request, contract)
+
     def establish_connection(self):
         try:
             logger.info('Establishing connection...')
