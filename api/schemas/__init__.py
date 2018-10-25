@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from marshmallow import Schema, fields
 
+
 class CallSchema(Schema):
     id = fields.Int()
     name = fields.Str()
@@ -15,8 +16,15 @@ class CallSchema(Schema):
     request = fields.String()
     contract = fields.List(fields.Int)
 
+
 class IPCallSchema(CallSchema):
     ipaddr = fields.String()
 
+
 class NumberCallSchema(CallSchema):
+    phone = fields.String()
+
+
+class MOXACallSchema(CallSchema):
+    ipaddr = fields.String()
     phone = fields.String()
