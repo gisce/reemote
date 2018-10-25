@@ -345,6 +345,58 @@ class ReemoteMOXAWrapper(ReemoteTCPIPWrapper):
             if self.connected:
                 self.close_connection()
 
+    def execute_request(self):
+        if self.reemote == 'local':
+            self.establish_connection()
+            if self.app_layer is not None and self.physical_layer is not None:
+                result = self.handle_file_request()
+                self.close_connection()
+            else:
+                return {
+                    'error': True,
+                    'message': '',
+                    'error_message': "Couldn't establish connection",
+                }
+
+        elif self.reemote.scheme == 'http':
+            logger.info('Sending request to API...')
+            post_data = {
+                'phone': self.phone,
+                'ipaddr': self.ipaddr,
+                'port': self.port,
+                'link': self.link,
+                'mpoint': self.mpoint,
+                'passwrd': self.passwrd,
+                'datefrom': self.datefrom,
+                'dateto': self.dateto,
+                'option': self.option,
+                'request': self.request,
+                'contract': self.contract
+            }
+            response = requests.post(self.reemote.geturl(), data=post_data, allow_redirects=True)
+            response = json.loads(response.content)
+            if response['error']:
+                logger.info('Received error message from API')
+                result = {
+                    'error': True,
+                    'message': response['message'],
+                    'error_message': response['errors'],
+                }
+            else:
+                logger.info('Received data without error from API')
+                result = {
+                    'error': False,
+                    'message': response['message'],
+                    'id': response['id'],
+                }
+        else:
+            result = {
+                    'error': True,
+                    'message': '',
+                    'error_message': 'REEMOTE_PATH protocol unknown',
+            }
+
+        return result
 
 class ReemoteModemWrapper(object):
 
