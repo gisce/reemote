@@ -7,6 +7,7 @@ from flask_login import LoginManager
 
 from redis import Redis
 from rq import Queue
+import os
 
 api = REEmoteApi(prefix='/api/v1')
 
@@ -29,6 +30,8 @@ def create_app(**config):
     if 'LOG_LEVEL' not in app.config:
         app.config['LOG_LEVEL'] = 'DEBUG'
 
+    if 'SERVER_NAME' in os.environ:
+        app.config['SERVER_NAME'] = os.environ['SERVER_NAME']
     # configure_login(app)
     configure_api(app)
     configure_backend(app)
@@ -52,7 +55,7 @@ def configure_api(app):
 
 def setup_backend_conn():
     # **config_from_environment('REDIS')
-    queue = Queue(QUEUE_NAME, connection=Redis())
+    queue = Queue(QUEUE_NAME, connection=Redis(os.environ['REDIS_NAME']))
     g.queue = queue
 
 
