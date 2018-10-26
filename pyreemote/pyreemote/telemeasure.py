@@ -208,8 +208,8 @@ class ReemoteTCPIPWrapper(object):
                 'link': self.link,
                 'mpoint': self.mpoint,
                 'passwrd': self.passwrd,
-                'datefrom': self.datefrom,
-                'dateto': self.dateto,
+                'datefrom': self.datefrom.strftime('%Y-%m-%dT%H:%M:%S'),
+                'dateto': self.dateto.strftime('%Y-%m-%dT%H:%M:%S'),
                 'option': self.option,
                 'request': self.request,
                 'contract': self.contract
@@ -367,8 +367,8 @@ class ReemoteMOXAWrapper(ReemoteTCPIPWrapper):
                 'link': self.link,
                 'mpoint': self.mpoint,
                 'passwrd': self.passwrd,
-                'datefrom': self.datefrom,
-                'dateto': self.dateto,
+                'datefrom': self.datefrom.strftime('%Y-%m-%dT%H:%M:%S'),
+                'dateto': self.dateto.strftime('%Y-%m-%dT%H:%M:%S'),
                 'option': self.option,
                 'request': self.request,
                 'contract': self.contract
