@@ -13,6 +13,7 @@ except ImportError:
 import requests
 import iec870ree.ip
 import iec870ree.protocol
+import reeprotocol_moxa.moxa
 
 TIMEZONE = timezone('Europe/Madrid')
 
@@ -207,8 +208,8 @@ class ReemoteTCPIPWrapper(object):
                 'link': self.link,
                 'mpoint': self.mpoint,
                 'passwrd': self.passwrd,
-                'datefrom': self.datefrom,
-                'dateto': self.dateto,
+                'datefrom': self.datefrom.strftime('%Y-%m-%dT%H:%M:%S'),
+                'dateto': self.dateto.strftime('%Y-%m-%dT%H:%M:%S'),
                 'option': self.option,
                 'request': self.request,
                 'contract': self.contract
@@ -306,6 +307,96 @@ class ReemoteTCPIPWrapper(object):
         response = requests.get(url)
         return json.loads(response.content)
 
+
+class ReemoteMOXAWrapper(ReemoteTCPIPWrapper):
+
+    def __init__(self, phone, ipaddr, port, link, mpoint, passwrd, datefrom,
+                 dateto, option, request, contract=None):
+        """
+        :param phone: Phone number
+        """
+        self.phone = phone
+        super(ReemoteMOXAWrapper, self).__init__(ipaddr, port, link, mpoint,
+                                                 passwrd, datefrom, dateto,
+                                                 option, request, contract)
+
+    def establish_connection(self):
+        try:
+            logger.info('Establishing connection...')
+            ip_layer = iec870ree.ip.Ip((self.ipaddr, self.port))
+            moxa_layer = reeprotocol_moxa.moxa.Moxa(self.phone, ip_layer)
+            link_layer = iec870ree.protocol.LinkLayer(self.link, self.mpoint)
+            link_layer.initialize(moxa_layer)
+            app_layer = iec870ree.protocol.AppLayer()
+            app_layer.initialize(link_layer)
+
+            moxa_layer.connect()
+            logger.info('MOXA physical layer connected')
+            link_layer.link_state_request()
+            link_layer.remote_link_reposition()
+            logger.info('Authentication...')
+            resp = app_layer.authenticate(self.passwrd)
+            logger.info('CLIENT authentication response: {}'.format(resp))
+
+            self.app_layer = app_layer
+            self.physical_layer = moxa_layer
+        except Exception as e:
+            logger.info('Connection failed. Exiting process...')
+            if self.connected:
+                self.close_connection()
+
+    def execute_request(self):
+        if self.reemote == 'local':
+            self.establish_connection()
+            if self.app_layer is not None and self.physical_layer is not None:
+                result = self.handle_file_request()
+                self.close_connection()
+            else:
+                return {
+                    'error': True,
+                    'message': '',
+                    'error_message': "Couldn't establish connection",
+                }
+
+        elif self.reemote.scheme == 'http':
+            logger.info('Sending request to API...')
+            post_data = {
+                'phone': self.phone,
+                'ipaddr': self.ipaddr,
+                'port': self.port,
+                'link': self.link,
+                'mpoint': self.mpoint,
+                'passwrd': self.passwrd,
+                'datefrom': self.datefrom.strftime('%Y-%m-%dT%H:%M:%S'),
+                'dateto': self.dateto.strftime('%Y-%m-%dT%H:%M:%S'),
+                'option': self.option,
+                'request': self.request,
+                'contract': self.contract
+            }
+            response = requests.post(self.reemote.geturl(), data=post_data, allow_redirects=True)
+            response = json.loads(response.content)
+            if response['error']:
+                logger.info('Received error message from API')
+                result = {
+                    'error': True,
+                    'message': response['message'],
+                    'error_message': response['errors'],
+                }
+            else:
+                logger.info('Received data without error from API')
+                result = {
+                    'error': False,
+                    'message': response['message'],
+                    'id': response['id'],
+                }
+        else:
+            result = {
+                    'error': True,
+                    'message': '',
+                    'error_message': 'REEMOTE_PATH protocol unknown',
+            }
+
+        return result
 
 class ReemoteModemWrapper(object):
 

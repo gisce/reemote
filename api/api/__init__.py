@@ -7,9 +7,10 @@ from flask_restful import Resource, Api
 from flask_login import login_required, current_user
 # from login import check_login_user, token_valid
 
-from pyreemote.telemeasure import ReemoteTCPIPWrapper, ReemoteModemWrapper
+from pyreemote.telemeasure import ReemoteTCPIPWrapper, ReemoteModemWrapper, \
+    ReemoteMOXAWrapper
 
-from schemas import IPCallSchema, NumberCallSchema
+from schemas import IPCallSchema, NumberCallSchema, MOXACallSchema
 from jobs import call_using_custom_wrapper
 
 # Python 2 and python3 compat for str type assertions
@@ -54,13 +55,23 @@ class SecuredResource(BaseResource):
 class CallEnqueue(Resource):
 
     def post(self):
-        params = request.values.to_dict()
-
+        params = request.values.to_dict(flat=False)
+        params = {k: params[k][0] if len(params[k]) <= 1 else params[k] for k in params}
+        if not isinstance(params['contract'], list):
+            params['contract'] = [params['contract']]
         try:
             # IP or Telephone number must exist
-            assert 'ipaddr' in params or 'number' in params
-
-            if 'ipaddr' in params:
+            assert 'ipaddr' in params or 'phone' in params
+            if 'ipaddr' in params and 'phone' in params:
+                assert isinstance(params['ipaddr'], basestring) and \
+                       params['ipaddr'] != "", "IP address '{}' is not correct"\
+                                                       .format(params['ipaddr'])
+                assert isinstance(params['phone'], basestring) and \
+                       params['phone'] != "", "Phone number '{}' is not correct" \
+                    .format(params['phone'])
+                remote_wrapper = ReemoteMOXAWrapper
+                schema = MOXACallSchema
+            elif 'ipaddr' in params:
                 assert isinstance(params['ipaddr'], basestring) and \
                        params['ipaddr'] != "", "IP address '{}' is not correct"\
                                                        .format(params['ipaddr'])
