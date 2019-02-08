@@ -173,6 +173,8 @@ class ReemoteTCPIPWrapper(object):
                 output = self.get_billings()
             elif self.option == 'p':
                 output = self.get_profiles()
+            elif self.option == 'p4':
+                output = self.get_quarter_hour_profiles()
         result = {
             'error': True if not output else False,
             'message': '',
@@ -260,6 +262,16 @@ class ReemoteTCPIPWrapper(object):
         for resp in self.app_layer.read_incremental_values(self.datefrom,
                                                            self.dateto,
                                                            register='profiles'):
+            values.append(resp.content.valores)
+        return parse_profiles(values, self.meter_serial,
+                              self.datefrom.strftime('%Y-%m-%d %H:%M:%S'),
+                              self.dateto.strftime('%Y-%m-%d %H:%M:%S'))
+
+    def get_quarter_hour_profiles(self):
+        logger.info('Requesting quarter hour profiles to device.')
+        values = []
+        for resp in self.app_layer.read_incremental_values(
+                self.datefrom, self.dateto, register='quarter_hour'):
             values.append(resp.content.valores)
         return parse_profiles(values, self.meter_serial,
                               self.datefrom.strftime('%Y-%m-%d %H:%M:%S'),
