@@ -13,7 +13,7 @@ except ImportError:
 import requests
 import iec870ree.ip
 import iec870ree.protocol
-import reeprotocol_moxa.moxa
+import iec870ree_moxa.moxa
 
 TIMEZONE = timezone('Europe/Madrid')
 
@@ -336,7 +336,7 @@ class ReemoteMOXAWrapper(ReemoteTCPIPWrapper):
         try:
             logger.info('Establishing connection...')
             ip_layer = iec870ree.ip.Ip((self.ipaddr, self.port))
-            moxa_layer = reeprotocol_moxa.moxa.Moxa(self.phone, ip_layer)
+            moxa_layer = iec870ree_moxa.moxa.Moxa(self.phone, ip_layer)
             link_layer = iec870ree.protocol.LinkLayer(self.link, self.mpoint)
             link_layer.initialize(moxa_layer)
             app_layer = iec870ree.protocol.AppLayer()
