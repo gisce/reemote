@@ -48,12 +48,12 @@ def get_season(dt):
         return 'W'
 
 
-def parse_billings(billings, contract, meter_serial, datefrom, dateto):
+def parse_billings(billings, contract, meter_serial, datefrom, dateto, flow):
     res = {
         'Contract': contract,
         'DateFrom': datefrom,
         'DateTo': dateto,
-        'Flow': 'Import',
+        'Flow': 'Export' if flow == 'E' else 'Import',
         'SerialNumber': str(meter_serial),
         'Totals': []
     }
@@ -144,6 +144,7 @@ class ReemoteTCPIPWrapper(object):
             self.dateto = datetime.strptime(dateto, '%Y-%m-%dT%H:%M:%S')
             self.option = option
             self.request = request
+            self.flow = False
             if contract:
                 if not isinstance(contract, list):
                     contract = list(contract)
@@ -252,7 +253,8 @@ class ReemoteTCPIPWrapper(object):
                 values.extend(resp.content.valores)
             aux = parse_billings(values, contract, self.meter_serial,
                                  self.datefrom.strftime('%Y-%m-%d %H:%M:%S'),
-                                 self.dateto.strftime('%Y-%m-%d %H:%M:%S'))
+                                 self.dateto.strftime('%Y-%m-%d %H:%M:%S'),
+                                 self.flow)
             res['Results'].append(aux)
         return res
 
@@ -318,6 +320,14 @@ class ReemoteTCPIPWrapper(object):
         url = self.reemote.geturl() + "{}".format(job_id)
         response = requests.get(url)
         return json.loads(response.content)
+
+    def set_flow(self, flow):
+        """
+        Sets flow parameter value. Value I for imported energy and E for
+        exported
+        :param flow: Indicates if the energy is imported or exported
+        """
+        self.flow = flow
 
 
 class ReemoteMOXAWrapper(ReemoteTCPIPWrapper):
