@@ -117,7 +117,7 @@ def parse_profiles(profiles, meter_serial, datefrom, dateto):
 class ReemoteTCPIPWrapper(object):
 
     def __init__(self, ipaddr, port, link, mpoint, passwrd, datefrom, dateto,
-                 option, request, contract=None):
+                 option, request, contract=None, flow=None):
         """
 
         :param ipaddr: Ip addres for the connection
@@ -144,7 +144,7 @@ class ReemoteTCPIPWrapper(object):
             self.dateto = datetime.strptime(dateto, '%Y-%m-%dT%H:%M:%S')
             self.option = option
             self.request = request
-            self.flow = False
+            self.flow = flow if flow else 'I'
             if contract:
                 if not isinstance(contract, list):
                     contract = list(contract)
