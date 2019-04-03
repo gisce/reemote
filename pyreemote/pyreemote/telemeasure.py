@@ -53,7 +53,7 @@ def parse_billings(billings, contract, meter_serial, datefrom, dateto, flow):
         'Contract': contract,
         'DateFrom': datefrom,
         'DateTo': dateto,
-        'Flow': 'Export' if flow == 'E' else 'Import',
+        'Flow': 'Export' if flow == 'E' and contract == 3 else 'Import',
         'SerialNumber': str(meter_serial),
         'Totals': []
     }
