@@ -30,6 +30,12 @@ MAGNITUDES = {
     8: 'RES8'
 }
 
+DEFAULT_CONTRACT_FLOW = {
+    1: 'Import',
+    2: 'Import',
+    3: 'Export'
+}
+
 
 def validate(date_text):
     try:
@@ -48,12 +54,12 @@ def get_season(dt):
         return 'W'
 
 
-def parse_billings(billings, contract, meter_serial, datefrom, dateto, flow):
+def parse_billings(billings, contract, meter_serial, datefrom, dateto):
     res = {
         'Contract': contract,
         'DateFrom': datefrom,
         'DateTo': dateto,
-        'Flow': 'Export' if flow == 'E' and contract == 3 else 'Import',
+        'Flow': DEFAULT_CONTRACT_FLOW[contract],
         'SerialNumber': str(meter_serial),
         'Totals': []
     }
@@ -117,7 +123,7 @@ def parse_profiles(profiles, meter_serial, datefrom, dateto):
 class ReemoteTCPIPWrapper(object):
 
     def __init__(self, ipaddr, port, link, mpoint, passwrd, datefrom, dateto,
-                 option, request, contract=None, flow=None):
+                 option, request, contract=None):
         """
 
         :param ipaddr: Ip addres for the connection
@@ -144,7 +150,6 @@ class ReemoteTCPIPWrapper(object):
             self.dateto = datetime.strptime(dateto, '%Y-%m-%dT%H:%M:%S')
             self.option = option
             self.request = request
-            self.flow = flow if flow else 'I'
             if contract:
                 if not isinstance(contract, list):
                     contract = list(contract)
@@ -253,8 +258,7 @@ class ReemoteTCPIPWrapper(object):
                 values.extend(resp.content.valores)
             aux = parse_billings(values, contract, self.meter_serial,
                                  self.datefrom.strftime('%Y-%m-%d %H:%M:%S'),
-                                 self.dateto.strftime('%Y-%m-%d %H:%M:%S'),
-                                 self.flow)
+                                 self.dateto.strftime('%Y-%m-%d %H:%M:%S'))
             res['Results'].append(aux)
         return res
 
@@ -320,14 +324,6 @@ class ReemoteTCPIPWrapper(object):
         url = self.reemote.geturl() + "{}".format(job_id)
         response = requests.get(url)
         return json.loads(response.content)
-
-    def set_flow(self, flow):
-        """
-        Sets flow parameter value. Value I for imported energy and E for
-        exported
-        :param flow: Indicates if the energy is imported or exported
-        """
-        self.flow = flow
 
 
 class ReemoteMOXAWrapper(ReemoteTCPIPWrapper):
@@ -419,6 +415,7 @@ class ReemoteMOXAWrapper(ReemoteTCPIPWrapper):
             }
 
         return result
+
 
 class ReemoteModemWrapper(object):
 
