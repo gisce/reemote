@@ -30,6 +30,12 @@ MAGNITUDES = {
     8: 'RES8'
 }
 
+DEFAULT_CONTRACT_FLOW = {
+    1: 'Import',
+    2: 'Import',
+    3: 'Export'
+}
+
 
 def validate(date_text):
     try:
@@ -53,7 +59,7 @@ def parse_billings(billings, contract, meter_serial, datefrom, dateto):
         'Contract': contract,
         'DateFrom': datefrom,
         'DateTo': dateto,
-        'Flow': 'Import',
+        'Flow': DEFAULT_CONTRACT_FLOW[contract],
         'SerialNumber': str(meter_serial),
         'Totals': []
     }
@@ -409,6 +415,7 @@ class ReemoteMOXAWrapper(ReemoteTCPIPWrapper):
             }
 
         return result
+
 
 class ReemoteModemWrapper(object):
 
