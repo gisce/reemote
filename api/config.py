@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+import logging
 from flask import Flask, g
+from flask.logging import default_handler
 from api import REEmoteApi
 # from metrics import Metrics
 # from osconf import config_from_environment
@@ -36,7 +38,15 @@ def create_app(**config):
     configure_api(app)
     configure_backend(app)
     # configure_metrics(app)
-
+    
+    # Enable PyREEMote logs
+    pyreemote_logger = logging.getLogger('pyreemote')
+    pyreemote_logger.addHandler(default_handler)
+    
+    # IEC870REE logs
+    iec870ree_logger = logging.getLogger('iec870ree')
+    iec870ree_logger.addHandler(default_handler)
+    
     return app
 
 
