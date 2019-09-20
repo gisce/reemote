@@ -2,7 +2,7 @@ Flask
 Flask-Login
 Flask-RESTful
 #pyreemote
-Marshmallow
+Marshmallow<2.19.0
 Redis
-RQ
+RQ<1.0.0
 uwsgi
