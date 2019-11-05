@@ -49,9 +49,10 @@ def validate(date_text):
 
 def get_season(dt):
     if dt.dst().seconds > 0:
-        return 'S'
+        season = 'S'
     else:
-        return 'W'
+        season = 'W'
+    return season
 
 
 def parse_billings(billings, contract, meter_serial, datefrom, dateto):
@@ -103,11 +104,16 @@ def parse_profiles(profiles, meter_serial, datefrom, dateto):
     }
     for hour_profile in profiles:
         date = hour_profile[0].datetime
+        locdate = date
+        if locdate.tzinfo is None:
+            locdate = TIMEZONE.localize(date)
+        print(locdate)
         record = {
-            'TimeInfo': date.strftime('%Y-%m-%d %H:%M:%S'),
-            'Season': get_season(TIMEZONE.localize(date)),
+            'TimeInfo': locdate.strftime('%Y-%m-%d %H:%M:%S'),
+            'Season': get_season(locdate),
             'Channels': []
         }
+        print(record)
         for channel in hour_profile:
             if channel.address not in [7, 8]:  # Skip RES7 and RES8 registers
                 channel = {
