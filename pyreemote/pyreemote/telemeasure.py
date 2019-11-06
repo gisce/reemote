@@ -107,13 +107,11 @@ def parse_profiles(profiles, meter_serial, datefrom, dateto):
         locdate = date
         if locdate.tzinfo is None:
             locdate = TIMEZONE.localize(date)
-        print(locdate)
         record = {
             'TimeInfo': locdate.strftime('%Y-%m-%d %H:%M:%S'),
             'Season': get_season(locdate),
             'Channels': []
         }
-        print(record)
         for channel in hour_profile:
             if channel.address not in [7, 8]:  # Skip RES7 and RES8 registers
                 channel = {
