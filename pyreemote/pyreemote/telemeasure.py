@@ -17,7 +17,6 @@ import iec870ree_moxa.moxa
 
 TIMEZONE = timezone('Europe/Madrid')
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 MAGNITUDES = {
