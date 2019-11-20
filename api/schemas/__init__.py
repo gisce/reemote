@@ -15,7 +15,7 @@ class CallSchema(Schema):
     option = fields.Str()
     request = fields.String()
     contract = fields.List(fields.Int)
-
+    delay = fields.Int()
 
 class IPCallSchema(CallSchema):
     ipaddr = fields.String()

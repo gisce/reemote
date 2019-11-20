@@ -57,8 +57,8 @@ class CallEnqueue(Resource):
     def post(self):
         params = request.values.to_dict(flat=False)
         params = {k: params[k][0] if len(params[k]) <= 1 else params[k] for k in params}
-        if not isinstance(params['contract'], list):
-            params['contract'] = [params['contract']]
+#        if not isinstance(params.get('contract'), list) and params in:
+#            params['contract'] = [params['contract']]
         try:
             # IP or Telephone number must exist
             assert 'ipaddr' in params or 'phone' in params
