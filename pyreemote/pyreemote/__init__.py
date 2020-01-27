@@ -1,3 +1,3 @@
 # -*- coding: utf-8 -*-
 
-__LIBRARY_VERSION__ = '11.2.1'
+__LIBRARY_VERSION__ = '11.3.0'
