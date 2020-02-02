@@ -301,7 +301,7 @@ class ReemoteTCPIPWrapper(object):
         logger.info('Requesting datetime to device.')
         resp_time = self.app_layer.read_datetime()
         current_datetime = resp_time.content.tiempo.datetime
-        datetime_meter = datetime.now()
+        datetime_meter = datetime.now(TIMEZONE)
         diff = current_datetime - datetime_meter
         res['diff'] = abs(diff.total_seconds())
         res['datetime_meter'] = datetime_meter.strftime('%Y-%m-%d %H:%M:%S')
