@@ -93,6 +93,31 @@ def parse_billings(billings, contract, meter_serial, datefrom, dateto):
     return res
 
 
+def parse_daily_billings(billings, meter_serial, value, datefrom, dateto, contract=1):
+    res = {
+        'Contract': contract,
+        'DateFrom': datefrom,
+        'DateTo': dateto,
+        'SerialNumber': str(meter_serial),
+        'Totals': []
+    }
+    for billing in billings:
+        period = {
+            'Tariff': 0,
+            'ai': billing[0].total,
+            'ae': billing[1].total,
+            'r1': billing[2].total,
+            'r2': billing[3].total,
+            'r3': billing[4].total,
+            'r4': billing[5].total,
+            'PeriodEnd': billing[0].datetime.strftime('%Y-%m-%d %H:%M:%S'),
+            'PeriodStart': billing[0].datetime.strftime('%Y-%m-%d %H:%M:%S'),
+            'value': value,
+        }
+        res['Totals'].append(period)
+    return res
+
+
 def parse_profiles(profiles, meter_serial, datefrom, dateto):
     res = {
         'Number': 1,
@@ -182,6 +207,8 @@ class ReemoteTCPIPWrapper(object):
                 if not self.contract:
                     self.contract = [1, 2, 3]
                 output = self.get_billings()
+            elif self.option == 'd':
+                output = self.get_daily_billings()
             elif self.option == 'p':
                 output = self.get_profiles()
             elif self.option == 'p4':
@@ -268,6 +295,21 @@ class ReemoteTCPIPWrapper(object):
                                  self.datefrom.strftime('%Y-%m-%d %H:%M:%S'),
                                  self.dateto.strftime('%Y-%m-%d %H:%M:%S'))
             res['Results'].append(aux)
+        return res
+
+    def get_daily_billings(self):
+        logger.info('Requesting daily billings to device.')
+        res = {'Results': []}
+        values = []
+        for resp in self.app_layer.read_incremental_values(self.datefrom,
+                                                           self.dateto,
+                                                           register='daily_billings'):
+            values.append(resp.content.valores)
+        aux = parse_daily_billings(values, self.meter_serial, 'i',
+                                   self.datefrom.strftime('%Y-%m-%d %H:%M:%S'),
+                                   self.dateto.strftime('%Y-%m-%d %H:%M:%S'),
+                                   contract=1)
+        res['Results'].append(aux)
         return res
 
     def get_profiles(self):
