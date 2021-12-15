@@ -17,6 +17,7 @@ import iec870ree_moxa.moxa
 
 TIMEZONE = timezone('Europe/Madrid')
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 MAGNITUDES = {
@@ -198,27 +199,41 @@ class ReemoteTCPIPWrapper(object):
 
     def handle_file_request(self):
         output = ''
-        if self.app_layer:
-            if self.meter_serial is None:
-                resp = self.app_layer.get_info()
-                self.meter_serial = resp.content.codigo_equipo
-                print(self.meter_serial)
-            if self.option == 'b':
-                if not self.contract:
-                    self.contract = [1, 2, 3]
-                output = self.get_billings()
-            elif self.option == 'd':
-                output = self.get_daily_billings()
-            elif self.option == 'p':
-                output = self.get_profiles()
-            elif self.option == 'p4':
-                output = self.get_quarter_hour_profiles()
-            elif self.option in ('t', 'ts'):
-                output = self.sync_datetime()
+        exception = False
+        error_message = ''
+        error = False
+        try:
+            if self.app_layer:
+                if self.meter_serial is None:
+                    resp = self.app_layer.get_info()
+                    self.meter_serial = resp.content.codigo_equipo
+                    print(self.meter_serial)
+                if self.option == 'b':
+                    if not self.contract:
+                        self.contract = [1, 2, 3]
+                    output = self.get_billings()
+                elif self.option == 'd':
+                    output = self.get_daily_billings()
+                elif self.option == 'p':
+                    output = self.get_profiles()
+                elif self.option == 'p4':
+                    output = self.get_quarter_hour_profiles()
+                elif self.option in ('t', 'ts'):
+                    output = self.sync_datetime()
+        except Exception as e:
+            exception_txt = '{}'.format(e)
+            exception = True
+
+        if not output:
+            error = True
+            error_message += 'No output received. '
+        if exception:
+            error_message += 'An Exception was raised: {}.'.format(exception_txt)
+
         result = {
-            'error': True if not output else False,
+            'error': error,
             'message': '',
-            'error_message': 'No output received',
+            'error_message': error_message,
         }
         if output:
             try:
@@ -226,12 +241,18 @@ class ReemoteTCPIPWrapper(object):
                 result['error_message'] = ''
             except:
                 result['error'] = True
-                result['error_message'] = 'ERROR: No JSON object could be decoded'
+                result['error_message'] += 'ERROR: No JSON object could be decoded'
         return result
 
     def execute_request(self):
         if self.reemote == 'local':
-            self.establish_connection()
+            exception_txt = ''
+            try:
+                self.establish_connection()
+            except Exception as e:
+                exception = True
+                exception_txt = '{}'.format(e)
+
             if self.app_layer is not None and self.physical_layer is not None:
                 result = self.handle_file_request()
                 self.close_connection()
@@ -239,7 +260,7 @@ class ReemoteTCPIPWrapper(object):
                 return {
                     'error': True,
                     'message': '',
-                    'error_message': "Couldn't establish connection",
+                    'error_message': "Couldn't establish connection: {}".format(exception_txt),
                 }
 
         elif self.reemote.scheme == 'http':
@@ -377,6 +398,7 @@ class ReemoteTCPIPWrapper(object):
             logger.info('Connection failed. Exiting process...')
             if self.connected:
                 self.close_connection()
+            raise e
 
     def close_connection(self):
         logger.info('Closing connection...')
@@ -433,10 +455,17 @@ class ReemoteMOXAWrapper(ReemoteTCPIPWrapper):
             logger.info('Connection failed. Exiting process...')
             if self.connected:
                 self.close_connection()
+            raise e
 
     def execute_request(self):
         if self.reemote == 'local':
-            self.establish_connection()
+            exception_txt = ''
+            try:
+                self.establish_connection()
+            except Exception as e:
+                exception = True
+                exception_txt = '{}'.format(e)
+
             if self.app_layer is not None and self.physical_layer is not None:
                 result = self.handle_file_request()
                 self.close_connection()
@@ -444,7 +473,7 @@ class ReemoteMOXAWrapper(ReemoteTCPIPWrapper):
                 return {
                     'error': True,
                     'message': '',
-                    'error_message': "Couldn't establish connection",
+                    'error_message': "Couldn't establish connection: {}".format(exception_txt),
                 }
 
         elif self.reemote.scheme == 'http':

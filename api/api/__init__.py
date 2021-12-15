@@ -97,7 +97,7 @@ class CallEnqueue(Resource):
             return response
 
         job = g.queue.enqueue(call_using_custom_wrapper, remote_wrapper,
-                              call_params)
+                              call_params, job_timeout=3600)
 
         if job:
             return jsonify({
