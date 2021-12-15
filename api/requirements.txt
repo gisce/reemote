@@ -4,5 +4,5 @@ Flask-RESTful
 #pyreemote
 Marshmallow<2.19.0
 Redis
-RQ
+RQ<1.0.0
 uwsgi
