@@ -6,3 +6,4 @@ Marshmallow<2.19.0
 Redis
 RQ<1.0.0
 uwsgi
+iec870ree_moxa>=0.5.1

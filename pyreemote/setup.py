@@ -11,7 +11,7 @@ setup(
     author_email='devel@gisce.net',
     install_requires=[
         'requests',
-        'iec870ree_moxa',
+        'iec870ree_moxa>=0.5.1',
     ],
     description='Python wrapper for iec870ree'
 )
