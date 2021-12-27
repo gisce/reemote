@@ -153,7 +153,7 @@ def parse_profiles(profiles, meter_serial, datefrom, dateto):
 class ReemoteTCPIPWrapper(object):
 
     def __init__(self, ipaddr, port, link, mpoint, passwrd, datefrom, dateto,
-                 option, request, contract=None, delay=None):
+                 option, request, contract=None, delay=None, wait_seconds=2):
         """
 
         :param ipaddr: Ip addres for the connection
@@ -166,6 +166,7 @@ class ReemoteTCPIPWrapper(object):
         :param option: Either "b" for Billings or "p" for Profiles
         :param request: Different types of request for the Profiles
         :param contract: List of contracts e.g:[1,3]
+        :param wait_seconds: Waiting seconds to connect
         """
         if validate(datefrom) and validate(dateto):
             self.meter_serial = None
@@ -180,6 +181,7 @@ class ReemoteTCPIPWrapper(object):
             self.dateto = datetime.strptime(dateto, '%Y-%m-%dT%H:%M:%S')
             self.option = option
             self.request = request
+            self.wait_seconds = wait_seconds
             if contract:
                 if not isinstance(contract, list):
                     contract = list(contract)
@@ -277,6 +279,7 @@ class ReemoteTCPIPWrapper(object):
                 'request': self.request,
                 'contract': self.contract,
                 'delay': self.delay,
+                'wait_seconds': int(self.wait_seconds),
             }
             response = requests.post(self.reemote.geturl(), data=post_data, allow_redirects=True)
             response = json.loads(response.content)
@@ -378,7 +381,7 @@ class ReemoteTCPIPWrapper(object):
     def establish_connection(self):
         try:
             logger.info('Establishing connection...')
-            physical_layer = iec870ree.ip.Ip((self.ipaddr, self.port))
+            physical_layer = iec870ree.ip.Ip((self.ipaddr, self.port), self.wait_seconds)
             link_layer = iec870ree.protocol.LinkLayer(self.link, self.mpoint)
             link_layer.initialize(physical_layer)
             app_layer = iec870ree.protocol.AppLayer()
@@ -422,20 +425,22 @@ class ReemoteTCPIPWrapper(object):
 class ReemoteMOXAWrapper(ReemoteTCPIPWrapper):
 
     def __init__(self, phone, ipaddr, port, link, mpoint, passwrd, datefrom,
-                 dateto, option, request, contract=None, delay=None):
+                 dateto, option, request, contract=None, delay=None, wait_seconds=2, modem_init_str=None):
         """
         :param phone: Phone number
+        :param modem_init_str: Modem initializing string
         """
         self.phone = phone
+        self.modem_init_str = modem_init_str
         super(ReemoteMOXAWrapper, self).__init__(ipaddr, port, link, mpoint,
                                                  passwrd, datefrom, dateto,
-                                                 option, request, contract, delay)
+                                                 option, request, contract, delay, wait_seconds)
 
     def establish_connection(self):
         try:
             logger.info('Establishing connection...')
-            ip_layer = iec870ree.ip.Ip((self.ipaddr, self.port))
-            moxa_layer = iec870ree_moxa.moxa.Moxa(self.phone, ip_layer)
+            ip_layer = iec870ree.ip.Ip((self.ipaddr, self.port), self.wait_seconds)
+            moxa_layer = iec870ree_moxa.moxa.Moxa(self.phone, ip_layer, self.modem_init_str)
             link_layer = iec870ree.protocol.LinkLayer(self.link, self.mpoint)
             link_layer.initialize(moxa_layer)
             app_layer = iec870ree.protocol.AppLayer()
@@ -489,8 +494,10 @@ class ReemoteMOXAWrapper(ReemoteTCPIPWrapper):
                 'dateto': self.dateto.strftime('%Y-%m-%dT%H:%M:%S'),
                 'option': self.option,
                 'request': self.request,
+                'modem_init_str': self.modem_init_str,
                 'contract': self.contract,
                 'delay': self.delay,
+                'wait_seconds': self.wait_seconds
             }
             response = requests.post(self.reemote.geturl(), data=post_data, allow_redirects=True)
             response = json.loads(response.content)
@@ -521,7 +528,7 @@ class ReemoteMOXAWrapper(ReemoteTCPIPWrapper):
 class ReemoteModemWrapper(object):
 
     def __init__(self, phone, port, link, mpoint, passwrd, datefrom, dateto,
-                 option, request, contract=None, delay=None):
+                 option, request, contract=None, delay=None, wait_seconds=2):
         """
 
         :param phone: Phone number of the modem
@@ -534,6 +541,7 @@ class ReemoteModemWrapper(object):
         :param option: Either "b" for Billings or "p" for Profiles
         :param request: Different types of request for the Profiles
         :param contract: List of contracts e.g:[1,3]
+        :param wait_seconds: Waiting seconds to connect
         """
         if validate(datefrom) and validate(dateto):
             self.phone = phone
@@ -588,6 +596,7 @@ class ReemoteModemWrapper(object):
                 'request': self.request,
                 'contract': self.contract,
                 'delay': self.delay,
+                'wait_seconds': self.wait_seconds
             }
             response = requests.post(self.reemote.geturl(), data=post_data)
             if response['error']:
