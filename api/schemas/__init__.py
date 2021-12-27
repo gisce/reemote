@@ -16,6 +16,7 @@ class CallSchema(Schema):
     request = fields.String()
     contract = fields.List(fields.Int)
     delay = fields.Int()
+    wait_seconds = fields.Int()
 
 class IPCallSchema(CallSchema):
     ipaddr = fields.String()
@@ -28,3 +29,4 @@ class NumberCallSchema(CallSchema):
 class MOXACallSchema(CallSchema):
     ipaddr = fields.String()
     phone = fields.String()
+    modem_init_str = fields.String()

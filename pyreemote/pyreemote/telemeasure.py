@@ -381,7 +381,7 @@ class ReemoteTCPIPWrapper(object):
     def establish_connection(self):
         try:
             logger.info('Establishing connection...')
-            physical_layer = iec870ree.ip.Ip((self.ipaddr, self.port))
+            physical_layer = iec870ree.ip.Ip((self.ipaddr, self.port), self.wait_seconds)
             link_layer = iec870ree.protocol.LinkLayer(self.link, self.mpoint)
             link_layer.initialize(physical_layer)
             app_layer = iec870ree.protocol.AppLayer()
@@ -431,6 +431,7 @@ class ReemoteMOXAWrapper(ReemoteTCPIPWrapper):
         :param modem_init_str: Modem initializing string
         """
         self.phone = phone
+        self.modem_init_str = modem_init_str
         super(ReemoteMOXAWrapper, self).__init__(ipaddr, port, link, mpoint,
                                                  passwrd, datefrom, dateto,
                                                  option, request, contract, delay, wait_seconds)
@@ -438,8 +439,8 @@ class ReemoteMOXAWrapper(ReemoteTCPIPWrapper):
     def establish_connection(self):
         try:
             logger.info('Establishing connection...')
-            ip_layer = iec870ree.ip.Ip((self.ipaddr, self.port))
-            moxa_layer = iec870ree_moxa.moxa.Moxa(self.phone, ip_layer)
+            ip_layer = iec870ree.ip.Ip((self.ipaddr, self.port), self.wait_seconds)
+            moxa_layer = iec870ree_moxa.moxa.Moxa(self.phone, ip_layer, self.modem_init_str)
             link_layer = iec870ree.protocol.LinkLayer(self.link, self.mpoint)
             link_layer.initialize(moxa_layer)
             app_layer = iec870ree.protocol.AppLayer()
