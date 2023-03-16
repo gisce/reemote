@@ -13,6 +13,10 @@ from pyreemote.telemeasure import ReemoteTCPIPWrapper, ReemoteModemWrapper, \
 from schemas import IPCallSchema, NumberCallSchema, MOXACallSchema
 from jobs import call_using_custom_wrapper
 
+import socket
+import subprocess
+
+
 # Python 2 and python3 compat for str type assertions
 try:
   basestring
@@ -195,11 +199,37 @@ class UserPassword(SecuredResource):
             })
 
 
+class MoxaStatus(Resource):
+
+    def test_moxa(self, public_ip, moxa_port=950):
+        status = False
+        if public_ip:
+            status = subprocess.call('/bin/ping -c 1 {}'.format(public_ip), shell=True) == 0
+            if not status and moxa_port:
+                s = socket.socket()
+                s.settimeout(10.0)
+                error_moxa_conn = s.connect_ex((public_ip, moxa_port))
+                s.close()
+                status = error_moxa_conn == 0
+        return status
+
+    def get(self, address):
+        '''
+        Tests moxa
+           * ping
+        '''
+        is_alive = self.test_moxa(address)
+        return jsonify({
+            'is_alive': is_alive,
+            }
+        )
+
 resources = [
     (CallEnqueue, '/call/'),
     (CallStatus, '/call/<string:job_id>'),
     (UserToken, '/get_token'),
     (UserTokenValid, '/is_token_valid'),
     (UserPassword, '/user/password'),
-    (ApiCatchall, '/<path:path>/')
+    (ApiCatchall, '/<path:path>/'),
+    (MoxaStatus, '/moxa/<string:address>'),
 ]
