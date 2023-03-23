@@ -133,7 +133,7 @@ class CallStatus(Resource):
                 "error": False,
                 "id": job.id,
                 "status": {
-                    "state": job.status,
+                    "state": job.get_status(),
                     "description": job.description,
                     "ttl": job.ttl,
                     "timeout": job.timeout,
