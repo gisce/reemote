@@ -149,12 +149,70 @@ def parse_profiles(profiles, meter_serial, datefrom, dateto):
         res['Records'].append(record)
     return res
 
+
 def parse_instant_values(values, meter_serial):
     res = {
-        "totals": False,
-        "powers": False,
-        "iv": False
+        "totals": parse_instant_totals(values[0].valores),
+        "powers": parse_instant_powers(values[1].valores),
+        "iv": parse_iv(values[2].valores),
+        "meter_serial": meter_serial
     }
+    return res
+
+
+def parse_instant_totals(totalizer):
+    return {
+        "ae": totalizer.ae,
+        "ae_val": totalizer.ae_val,
+        "ai": totalizer.ai,
+        "ai_val": totalizer.ai_val,
+        "r1": totalizer.r1,
+        "r1_val": totalizer.r1_val,
+        "r2": totalizer.r2,
+        "r2_val": totalizer.r2_val,
+        "r3": totalizer.r3,
+        "r3_val": totalizer.r3_val,
+        "r4": totalizer.r4,
+        "r4_val": totalizer.r4_val,
+        "measure_date": totalizer.measure_date.datetime.strftime('%Y-%m-%d %H:%M:%S')
+    }
+
+
+def parse_instant_powers(powers):
+    res = {
+        'records': [],
+        'measure_date': False
+    }
+    for i in range(0, len(powers)-1):
+        record = {
+            "fase": powers[i].fase,
+            "potencia_activa": powers[i].potencia_activa,
+            "potencia_reactiva": powers[i].potencia_reactiva,
+            "factor_potencia": powers[i].factor_potencia,
+            "is_exporting_activa": powers[i].is_exporting_activa,
+            "is_exporting_reactiva": powers[i].is_exporting_reactiva,
+            "valid": powers[i].valid
+        }
+        res['records'].append(record)
+    res['measure_date'] = powers[len(powers)-1].datetime.strftime('%Y-%m-%d %H:%M:%S')
+    return res
+
+
+def parse_iv(ivs):
+    res = {
+        'records': [],
+        'measure_date': False
+    }
+    for i in range(0, len(ivs)-1):
+        record = {
+            "phase": ivs[i].phase,
+            "I": ivs[i].I,
+            "V": ivs[i].V,
+            "valid": ivs[i].valid
+        }
+        res['records'].append(record)
+    res['measure_date'] = ivs[len(ivs)-1].datetime.strftime('%Y-%m-%d %H:%M:%S')
+    return res
 
 class ReemoteTCPIPWrapper(object):
 
