@@ -149,6 +149,12 @@ def parse_profiles(profiles, meter_serial, datefrom, dateto):
         res['Records'].append(record)
     return res
 
+def parse_instant_values(values, meter_serial):
+    res = {
+        "totals": False,
+        "powers": False,
+        "iv": False
+    }
 
 class ReemoteTCPIPWrapper(object):
 
@@ -222,6 +228,8 @@ class ReemoteTCPIPWrapper(object):
                     output = self.get_quarter_hour_profiles()
                 elif self.option in ('t', 'ts'):
                     output = self.sync_datetime()
+                elif self.option == 'iv':
+                    output = self.get_instant_values()
         except Exception as e:
             exception_txt = '{}'.format(e)
             exception = True
@@ -377,6 +385,12 @@ class ReemoteTCPIPWrapper(object):
             if resp_update_time:
                 res['updated'] = True
         return res
+
+    def get_instant_values(self):
+        logger.info('Requesting instant values to device')
+        instant_objects = ['totalizadores', 'potencias', 'I_V']
+        resp = self.app_layer.ext_read_instant_values(objects=instant_objects)
+        return parse_instant_values(resp.content.valores, self.meter_serial)
 
     def establish_connection(self):
         try:
