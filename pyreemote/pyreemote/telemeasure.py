@@ -190,7 +190,7 @@ def parse_instant_powers(powers):
             "potencia_reactiva": powers[i].potencia_reactiva,
             "factor_potencia": powers[i].factor_potencia,
             "is_exporting_activa": powers[i].is_exporting_activa,
-            "is_exporting_reactiva": powers[i].is_exporting_reactiva,
+            "reactive_quadrant": powers[i].reactive_quadrant,
             "valid": powers[i].valid
         }
         res['records'].append(record)
