@@ -288,6 +288,8 @@ class ReemoteTCPIPWrapper(object):
                     output = self.sync_datetime()
                 elif self.option == 'iv':
                     output = self.get_instant_values()
+                elif self.option == 'pt':
+                    output = self.get_power_and_tariff_info()
         except Exception as e:
             exception_txt = '{}'.format(e)
             exception = True
@@ -442,6 +444,47 @@ class ReemoteTCPIPWrapper(object):
             resp_update_time = self.app_layer.set_datetime()
             if resp_update_time:
                 res['updated'] = True
+        return res
+
+    def get_power_and_tariff_info(self):
+        logging.info(
+            'Requesting contracted powers and tariff info values to device')
+        logging.info(' * Getting powers')
+        res = {'active_powers': False, 'latent_powers': False,
+               'tariff_info': False}
+        powers = {'active': {}, 'latent': {}}
+        powers['active']['data'] = self.app_layer.get_contracted_powers()
+        try:
+            powers['latent']['data'] = self.app_layer.get_contracted_powers(
+                register=4)
+        except:
+            logging.info('LATENT POWERS NOT AVAILABLE')
+            powers.pop('latent')
+            res.pop('latent_powers')
+
+        for key, cur_power_dict in powers.items():
+            data = cur_power_dict['data']
+            cur_power_dict['date'] = data.content.tiempo.datetime
+            cur_power_dict['powers'] = {}
+            for contractedpower in data.content.valores:
+                period = contractedpower.address % 10
+                cur_power_dict['powers'][
+                    'p{}'.format(period)] = contractedpower.power
+        print("Powers: {}".format(cur_power_dict))
+
+        tariff = {}
+        for c in self.contract:
+            r = self.app_layer.ext_read_contract_tariff_info(register=134,
+                                                        objects=['seasons'])
+            tariff[c] = r.content.valores[0]
+            print("Tariff info ({}): {}".format(c, r))
+
+        res = {
+            'active_powers': powers['active'],
+            'tariff_info': tariff
+        }
+        if powers.get('latent'):
+            res['latent_powers'] = powers['latent']
         return res
 
     def get_instant_values(self):
