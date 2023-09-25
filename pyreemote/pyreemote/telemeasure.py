@@ -484,14 +484,12 @@ class ReemoteTCPIPWrapper(object):
         logging.info(' * Getting powers')
         res = {'active_powers': False, 'latent_powers': False,
                'tariff_info': False}
-        powers = {'active_powers': {}, 'latent_powers': {}}
         res['active_powers'] = self.app_layer.get_contracted_powers()
         try:
             res['latent_powers'] = self.app_layer.get_contracted_powers(
                 register=4)
         except:
             logging.info('LATENT POWERS NOT AVAILABLE')
-            powers.pop('latent_powers')
             res.pop('latent_powers')
 
         tariff = {}
