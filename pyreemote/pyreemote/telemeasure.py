@@ -150,6 +150,38 @@ def parse_profiles(profiles, meter_serial, datefrom, dateto):
     return res
 
 
+def parse_powers_and_tariffs(values):
+    res = {
+        "active_powers": parse_powers(values['active_powers']),
+        "tariff_info": parse_tariff_info(values['tariff_info']),
+    }
+    if values.get('latent_powers', False):
+        res["latent_powers"] = parse_powers(values['latent_powers'])
+    return res
+
+
+def parse_powers(content):
+    values = content.content
+    powers_res = {'date': values.tiempo.datetime, 'powers': {}}
+    for power in values.valores:
+        period = power.address % 10
+        powers_res['powers']['p{}'.format(period)] = power.power
+    return powers_res
+
+
+def parse_tariff_info(content):
+    tariff_res = {}
+    for k, v in content.items():
+        for data in v.content.valores:
+            tariff_res[k] = {}
+            tariff_res[k]['dias'] = data.dias
+            tariff_res[k]['fecha_activacion'] = data.fecha_activacion
+            tariff_res[k]['sentido'] = data.sentido
+            tariff_res[k]['temporadas'] = data.temporadas
+            tariff_res[k]['tipo'] = data.tipo
+    return tariff_res
+
+
 def parse_instant_values(values, meter_serial):
     res = {
         "totals": parse_instant_totals(values[0].valores),
@@ -452,40 +484,26 @@ class ReemoteTCPIPWrapper(object):
         logging.info(' * Getting powers')
         res = {'active_powers': False, 'latent_powers': False,
                'tariff_info': False}
-        powers = {'active': {}, 'latent': {}}
-        powers['active']['data'] = self.app_layer.get_contracted_powers()
+        res['active_powers'] = self.app_layer.get_contracted_powers()
         try:
-            powers['latent']['data'] = self.app_layer.get_contracted_powers(
+            res['latent_powers'] = self.app_layer.get_contracted_powers(
                 register=4)
         except:
             logging.info('LATENT POWERS NOT AVAILABLE')
-            powers.pop('latent')
             res.pop('latent_powers')
-
-        for key, cur_power_dict in powers.items():
-            data = cur_power_dict['data']
-            cur_power_dict['date'] = data.content.tiempo.datetime
-            cur_power_dict['powers'] = {}
-            for contractedpower in data.content.valores:
-                period = contractedpower.address % 10
-                cur_power_dict['powers'][
-                    'p{}'.format(period)] = contractedpower.power
-        print("Powers: {}".format(cur_power_dict))
 
         tariff = {}
         for c in self.contract:
-            r = self.app_layer.ext_read_contract_tariff_info(register=134,
-                                                        objects=['seasons'])
-            tariff[c] = r.content.valores[0]
-            print("Tariff info ({}): {}".format(c, r))
-
-        res = {
-            'active_powers': powers['active'],
-            'tariff_info': tariff
-        }
-        if powers.get('latent'):
-            res['latent_powers'] = powers['latent']
-        return res
+            try:
+                tariff[c] = self.app_layer.ext_read_contract_tariff_info(
+                    register=iec870ree.protocol.CONTRACTS_REGISTERS[c],
+                    objects=['seasons']
+                )
+            except Exception as e:
+                print(e)
+        if tariff:
+            res['tariff_info'] = tariff
+        return parse_powers_and_tariffs(res)
 
     def get_instant_values(self):
         logger.info('Requesting instant values to device')
