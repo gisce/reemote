@@ -178,7 +178,7 @@ def parse_tariff_info(content):
         for data in v.content.valores:
             tariff_res[k] = {}
             tariff_res[k]['dias'] = data.dias
-            tariff_res[k]['fecha_activacion'] = data.fecha_activacion
+            tariff_res[k]['fecha_activacion'] = data.fecha_activacion.datetime.strftime('%Y-%m-%d %H:%M:%S')
             tariff_res[k]['sentido'] = data.sentido
             tariff_res[k]['tipo'] = data.tipo
 
