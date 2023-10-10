@@ -237,16 +237,17 @@ class SendMoxa(Resource):
 
             split_write_sleep = commands.split(';')
             res = []
-            for write_sleep in split_write_sleep:
+            instruction_count = 0
+            for write_sleep, i in enumerate(split_write_sleep):
                 command, sleep = write_sleep.split(':')
                 sock.sendall(bytes(command + '\r\n', 'ascii'))
                 tmp_res = ''
                 while 'OK' not in tmp_res and 'ERR' not in tmp_res:
                     print('receiving')
                     data = sock.recv(16)
-                    tmp_res += data
+                    tmp_res += str(data)
                     print('received {}'.format(tmp_res))
-                res.append({'res': tmp_res})
+                res.append({'id': i+1, 'command': command, 'res': tmp_res})
                 time.sleep(int(sleep))
 
         except Exception as e:
