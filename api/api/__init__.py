@@ -15,7 +15,10 @@ from jobs import call_using_custom_wrapper
 
 from redis import Redis
 import os
-from importlib.metadata import version
+try:
+    from importlib.metadata import version
+except:
+    from importlib_metadata import version
 import socket
 import time
 
