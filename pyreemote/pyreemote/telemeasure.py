@@ -698,7 +698,10 @@ class ReemoteModemWrapper(object):
                 if os.environ['REEMOTE_PATH'] == 'local':
                     self.reemote = 'local'
                 else:
-                    self.reemote = urlparse(os.environ['REEMOTE_PATH'])
+                    reemote_url = os.environ['REEMOTE_PATH']
+                    if '/call' not in reemote_url:
+                        reemote_url = reemote_url + '/call'
+                    self.reemote = urlparse(reemote_url)
             else:
                 raise ValueError('Can\'t find the REEMOTE_PATH variable')
         else:
