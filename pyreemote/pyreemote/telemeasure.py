@@ -150,16 +150,6 @@ def parse_profiles(profiles, meter_serial, datefrom, dateto):
     return res
 
 
-def parse_powers_and_tariffs(values):
-    res = {
-        "active_powers": parse_powers(values['active_powers']),
-        "tariff_info": parse_tariff_info(values['tariff_info']),
-    }
-    if values.get('latent_powers', False):
-        res["latent_powers"] = parse_powers(values['latent_powers'])
-    return res
-
-
 def parse_powers(content):
     values = content.content
     powers_res = {
@@ -202,6 +192,13 @@ def parse_tariff_info(content):
                 }
                 tariff_res[k]['temporadas'].append(temp_res)
     return tariff_res
+
+
+def parse_holiday_days(content):
+    str_holidays = []
+    for day in content:
+        str_holidays.append(day.datetime.strftime('%Y-%m-%d %H:%M:%S'))
+    return sorted(str_holidays)
 
 
 def parse_instant_values(values, meter_serial):
@@ -504,16 +501,28 @@ class ReemoteTCPIPWrapper(object):
         logging.info(
             'Requesting contracted powers and tariff info values to device')
         logging.info(' * Getting powers')
-        res = {'active_powers': False, 'latent_powers': False,
-               'tariff_info': False}
-        res['active_powers'] = self.app_layer.get_contracted_powers()
+        res = {}
+        res.update(self.get_powers())
+        res.update(self.get_tariffs())
+        res.update(self.get_holiday_days())
+        return res
+
+    def get_powers(self):
+        res = {'active_powers': False, 'latent_powers': False}
+        active_powers = self.app_layer.get_contracted_powers()
+        res['active_powers'] = parse_powers(active_powers)
         try:
-            res['latent_powers'] = self.app_layer.get_contracted_powers(
+            latent_powers = self.app_layer.get_contracted_powers(
                 register=4)
+            res['latent_powers'] = parse_powers(latent_powers)
         except:
             logging.info('LATENT POWERS NOT AVAILABLE')
             res.pop('latent_powers')
-
+        
+        return res
+    
+    def get_tariffs(self):
+        res = {'tariff_info': False}
         tariff = {}
         for c in self.contract:
             try:
@@ -524,8 +533,14 @@ class ReemoteTCPIPWrapper(object):
             except Exception as e:
                 print(e)
         if tariff:
-            res['tariff_info'] = tariff
-        return parse_powers_and_tariffs(res)
+            res['tariff_info'] = parse_tariff_info(tariff)
+        return res
+    
+    def get_holiday_days(self):
+        res = {'holiday_days': False}
+        holidays = self.app_layer.read_holiday_days()
+        res['holiday_days'] = parse_holiday_days(holidays)
+        return res
 
     def get_instant_values(self):
         logger.info('Requesting instant values to device')
