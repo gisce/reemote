@@ -162,7 +162,10 @@ def parse_powers_and_tariffs(values):
 
 def parse_powers(content):
     values = content.content
-    powers_res = {'date': values.tiempo.datetime, 'powers': {}}
+    powers_res = {
+        'date': values.tiempo.datetime.strftime('%Y-%m-%d %H:%M:%S'),
+        'powers': {}
+    }
     for power in values.valores:
         period = power.address % 10
         powers_res['powers']['p{}'.format(period)] = power.power
@@ -174,11 +177,30 @@ def parse_tariff_info(content):
     for k, v in content.items():
         for data in v.content.valores:
             tariff_res[k] = {}
-            tariff_res[k]['dias'] = data.dias
-            tariff_res[k]['fecha_activacion'] = data.fecha_activacion
+            tariff_res[k]['fecha_activacion'] = data.fecha_activacion.datetime.strftime('%Y-%m-%d %H:%M:%S')
+            tariff_res[k]['SU'] = data.fecha_activacion.SU
             tariff_res[k]['sentido'] = data.sentido
-            tariff_res[k]['temporadas'] = data.temporadas
             tariff_res[k]['tipo'] = data.tipo
+
+            tariff_res[k]['dias'] = []
+            for dia in data.dias:
+                dias_res = {
+                    'horas': dia.horas,
+                    'tipo': dia.tipo
+                }
+                tariff_res[k]['dias'].append(dias_res)
+
+            tariff_res[k]['temporadas'] = []
+            for temporada in data.temporadas:
+                temp_datetime = temporada.inicio.datetime.strftime(
+                    '%Y-%m-%d %H:%M:%S')
+                temp_res = {
+                    'inicio': temp_datetime,
+                    'temporada': temporada.temporada,
+                    'tipo_dia_festivo': temporada.tipo_dia_festivo,
+                    'tipo_dia_laborable': temporada.tipo_dia_laborable
+                }
+                tariff_res[k]['temporadas'].append(temp_res)
     return tariff_res
 
 
