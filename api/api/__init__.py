@@ -241,7 +241,7 @@ class SendMoxa(Resource):
             split_write_sleep = commands.split(';')
             res = []
             instruction_count = 0
-            for write_sleep, i in enumerate(split_write_sleep):
+            for i, write_sleep in enumerate(split_write_sleep):
                 command, sleep = write_sleep.split(':')
                 sock.sendall(bytes(command + '\r\n', 'ascii'))
                 tmp_res = ''
