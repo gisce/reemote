@@ -539,7 +539,7 @@ class ReemoteTCPIPWrapper(object):
     def get_holiday_days(self):
         res = {'holiday_days': False}
         holidays = self.app_layer.read_holiday_days()
-        res['holiday_days'] = parse_holiday_days(holidays)
+        res['holiday_days'] = parse_holiday_days(holidays.content.valores)
         return res
 
     def get_instant_values(self):
