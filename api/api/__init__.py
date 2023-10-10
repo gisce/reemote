@@ -13,6 +13,12 @@ from pyreemote.telemeasure import ReemoteTCPIPWrapper, ReemoteModemWrapper, \
 from schemas import IPCallSchema, NumberCallSchema, MOXACallSchema
 from jobs import call_using_custom_wrapper
 
+from redis import Redis
+import os
+from importlib.metadata import version
+import socket
+import time
+
 # Python 2 and python3 compat for str type assertions
 try:
   basestring
@@ -195,11 +201,69 @@ class UserPassword(SecuredResource):
             })
 
 
+class TestConnection(Resource):
+    def get(self):
+        redis_name = os.environ.get('REDIS_NAME', "")
+        r = Redis(redis_name)
+        try:
+            r.ping()
+            is_alive = True
+        except Exception as e:
+            is_alive = False
+            print(repr(e))
+        finally:
+            r.close()
+
+        return jsonify({
+            'redis_ok': is_alive,
+            'iec870ree': version('iec870ree'),
+            'iec870ree_moxa': version('iec870ree_moxa')
+        })
+
+
+class SendMoxa(Resource):
+    def get(self):
+        address = request.args.get('address', False)
+        commands = request.args.get('commands', False)
+
+        if address:
+            ip, port = address.split(':')
+        else:
+            return 'Must define address parameter.'
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            sock.settimeout(5)
+            sock.connect((ip, int(port)))
+
+            split_write_sleep = commands.split(';')
+            res = []
+            for write_sleep in split_write_sleep:
+                command, sleep = write_sleep.split(':')
+                sock.sendall(bytes(command + '\r\n', 'ascii'))
+                tmp_res = ''
+                while 'OK' not in tmp_res and 'ERR' not in tmp_res:
+                    print('receiving')
+                    data = sock.recv(16)
+                    tmp_res += data
+                    print('received {}'.format(tmp_res))
+                res.append({'res': tmp_res})
+                time.sleep(int(sleep))
+
+        except Exception as e:
+            res = str(e)
+        finally:
+            sock.close()
+
+        return jsonify(res)
+
+
 resources = [
     (CallEnqueue, '/call/'),
     (CallStatus, '/call/<string:job_id>'),
     (UserToken, '/get_token'),
     (UserTokenValid, '/is_token_valid'),
     (UserPassword, '/user/password'),
-    (ApiCatchall, '/<path:path>/')
+    (ApiCatchall, '/<path:path>/'),
+    (TestConnection, '/test'),
+    (SendMoxa, '/send')
 ]
