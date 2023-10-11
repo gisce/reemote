@@ -248,7 +248,7 @@ class SendMoxa(Resource):
                 while 'OK' not in tmp_res and 'ERR' not in tmp_res:
                     print('receiving')
                     data = sock.recv(16)
-                    tmp_res += str(data)
+                    tmp_res += data.decode()
                     print('received {}'.format(tmp_res))
                 res.append({'id': i+1, 'command': command, 'res': tmp_res})
                 time.sleep(int(sleep))
