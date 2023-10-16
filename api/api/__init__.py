@@ -240,7 +240,7 @@ class SendMoxa(Resource):
 
             split_write_sleep = commands.split(';')
             res = []
-            instruction_count = 0
+            
             for i, write_sleep in enumerate(split_write_sleep):
                 command, sleep = write_sleep.split(':')
                 sock.sendall(bytes(command + '\r\n', 'ascii'))
@@ -267,7 +267,7 @@ resources = [
     (UserToken, '/get_token'),
     (UserTokenValid, '/is_token_valid'),
     (UserPassword, '/user/password'),
-    (ApiCatchall, '/<path:path>/'),
     (TestConnection, '/test'),
-    (SendMoxa, '/send')
+    (SendMoxa, '/send'),
+    (ApiCatchall, '/<path:path>/'),
 ]
