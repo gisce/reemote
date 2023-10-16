@@ -7,3 +7,4 @@ Redis
 RQ
 uwsgi
 iec870ree_moxa>=0.5.1
+importlib-metadata
