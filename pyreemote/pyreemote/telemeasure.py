@@ -309,7 +309,11 @@ class ReemoteTCPIPWrapper(object):
             self.delay = delay
 
             if 'REEMOTE_PATH' in os.environ:
-                self.reemote = urlparse(os.environ['REEMOTE_PATH'])
+                reemote_url = os.environ['REEMOTE_PATH']
+                print(reemote_url)
+                if '/call' not in reemote_url:
+                    reemote_url = reemote_url + '/call'
+                self.reemote = urlparse(reemote_url)
             else:
                 self.reemote = 'local'
         else:
@@ -572,7 +576,10 @@ class ReemoteTCPIPWrapper(object):
             return self.physical_layer.alive.is_set()
 
     def get_status(self, job_id):
-        url = self.reemote.geturl() + "{}".format(job_id)
+        reemote_url = self.reemote.geturl()
+        if reemote_url.endswith('/'):
+            reemote_url = reemote_url[:-1]
+        url = reemote_url + "/{}".format(job_id)
         response = requests.get(url)
         return json.loads(response.content)
 
