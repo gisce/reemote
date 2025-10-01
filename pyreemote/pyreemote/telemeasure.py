@@ -149,6 +149,9 @@ def parse_profiles(profiles, meter_serial, datefrom, dateto):
         res['Records'].append(record)
     return res
 
+def parse_events(values):
+    res = {}
+    return values
 
 def parse_powers_and_tariffs(values):
     res = {
@@ -307,6 +310,7 @@ class ReemoteTCPIPWrapper(object):
             else:
                 self.contract = []
             self.delay = delay
+            self.event_groups = (52, 53, 54, 55, 128, 129, 131, 132, 133)
 
             if 'REEMOTE_PATH' in os.environ:
                 reemote_url = os.environ['REEMOTE_PATH']
@@ -348,6 +352,8 @@ class ReemoteTCPIPWrapper(object):
                     output = self.get_instant_values()
                 elif self.option == 'pt':
                     output = self.get_power_and_tariff_info()
+                elif self.option == 'e':
+                    output = self.get_events()
         except Exception as e:
             exception_txt = '{}'.format(e)
             exception = True
@@ -503,6 +509,14 @@ class ReemoteTCPIPWrapper(object):
             if resp_update_time:
                 res['updated'] = True
         return res
+
+    def get_events(self):
+        logging.info('Requesting events to device')
+        values = []
+        for event_group in self.event_groups:
+            for resp in self.app_layer.read_events(event_group):
+                values.append(resp.content.valores)
+        return parse_events(values)
 
     def get_power_and_tariff_info(self):
         logging.info(
