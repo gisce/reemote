@@ -514,8 +514,11 @@ class ReemoteTCPIPWrapper(object):
         logging.info('Requesting events to device')
         values = []
         for event_group in self.event_groups:
-            for resp in self.app_layer.read_events(event_group):
-                values.append(resp.content.valores)
+            try:
+                for resp in self.app_layer.read_events(event_group):
+                    values.append(resp.content)
+            except:
+                logging.info("WARNING: event {} not available".format(event_group))
         return parse_events(values)
 
     def get_power_and_tariff_info(self):
@@ -549,7 +552,7 @@ class ReemoteTCPIPWrapper(object):
         logger.info('Requesting instant values to device')
         instant_objects = ['totalizadores', 'potencias', 'I_V']
         resp = self.app_layer.ext_read_instant_values(objects=instant_objects)
-        return parse_instant_values(resp.content.valores, self.meter_serial)
+        return parse_instant_values(resp.content, self.meter_serial)
 
     def establish_connection(self):
         try:
