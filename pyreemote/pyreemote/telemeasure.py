@@ -153,15 +153,14 @@ def parse_profiles(profiles, meter_serial, datefrom, dateto):
 def parse_events(values, meter_serial, d_from, d_to):
     res = {
         'SerialNumber': str(meter_serial),
-        'DateFrom': d_from,
-        'DateTo': d_to,
         'Events': []
     }
     for event_info in values:
         for event in event_info.content.valores:
             event_desc = get_event_description(event)
             record = {
-                'Date': event.date,
+                'Date': event.date.datetime.strftime('%Y-%m-%d %H:%M:%S'),
+                'Season': {'1': 'S', '0': 'W'}[str(event.date.SU)],
                 'SPA': event.SPA,
                 'SPI': event.SPI,
                 'SPQ': event.SPQ,
