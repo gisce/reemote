@@ -14,6 +14,7 @@ import requests
 import iec870ree.ip
 import iec870ree.protocol
 import iec870ree_moxa.moxa
+from iec870ree.events import get_event_description
 
 TIMEZONE = timezone('Europe/Madrid')
 
@@ -149,9 +150,27 @@ def parse_profiles(profiles, meter_serial, datefrom, dateto):
         res['Records'].append(record)
     return res
 
-def parse_events(values):
-    res = {}
-    return values
+def parse_events(values, meter_serial, d_from, d_to):
+    res = {
+        'SerialNumber': str(meter_serial),
+        'DateFrom': d_from,
+        'DateTo': d_to,
+        'Events': []
+    }
+    for event_info in values:
+        for event in event_info.content.valores:
+            event_desc = get_event_description(event)
+            record = {
+                'Date': event.date,
+                'SPA': event.SPA,
+                'SPI': event.SPI,
+                'SPQ': event.SPQ,
+                'Description': event_desc,
+                'EventDir': event_info.dir_registro
+            }
+            res['Events'].append(record)
+
+    return res
 
 def parse_powers_and_tariffs(values):
     res = {
@@ -516,10 +535,13 @@ class ReemoteTCPIPWrapper(object):
         for event_group in self.event_groups:
             try:
                 for resp in self.app_layer.read_events(event_group):
-                    values.append(resp.content)
+                    values.append(resp)
             except:
                 logging.info("WARNING: event {} not available".format(event_group))
-        return parse_events(values)
+        return parse_events(
+            values, self.meter_serial,
+            self.datefrom.strftime('%Y-%m-%d %H:%M:%S'),
+            self.dateto.strftime('%Y-%m-%d %H:%M:%S'))
 
     def get_power_and_tariff_info(self):
         logging.info(
