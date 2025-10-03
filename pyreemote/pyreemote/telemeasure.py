@@ -165,7 +165,7 @@ def parse_events(values, meter_serial, d_from, d_to):
                 'SPI': event.SPI,
                 'SPQ': event.SPQ,
                 'Description': event_desc,
-                'EventDir': event_info.dir_registro
+                'RegisterDir': event_info.dir_registro
             }
             res['Events'].append(record)
 
