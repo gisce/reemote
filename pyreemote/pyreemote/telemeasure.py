@@ -14,6 +14,7 @@ import requests
 import iec870ree.ip
 import iec870ree.protocol
 import iec870ree_moxa.moxa
+from iec870ree.events import get_event_description
 
 TIMEZONE = timezone('Europe/Madrid')
 
@@ -149,6 +150,26 @@ def parse_profiles(profiles, meter_serial, datefrom, dateto):
         res['Records'].append(record)
     return res
 
+def parse_events(values, meter_serial, d_from, d_to):
+    res = {
+        'SerialNumber': str(meter_serial),
+        'Events': []
+    }
+    for event_info in values:
+        for event in event_info.content.valores:
+            event_desc = get_event_description(event)
+            record = {
+                'Date': event.date.datetime.strftime('%Y-%m-%d %H:%M:%S'),
+                'Season': {'1': 'S', '0': 'W'}[str(event.date.SU)],
+                'SPA': event.SPA,
+                'SPI': event.SPI,
+                'SPQ': event.SPQ,
+                'Description': event_desc,
+                'RegisterDir': event_info.dir_registro
+            }
+            res['Events'].append(record)
+
+    return res
 
 def parse_powers_and_tariffs(values):
     res = {
@@ -307,6 +328,7 @@ class ReemoteTCPIPWrapper(object):
             else:
                 self.contract = []
             self.delay = delay
+            self.event_groups = (52, 53, 54, 55, 128, 129, 131, 132, 133)
 
             if 'REEMOTE_PATH' in os.environ:
                 reemote_url = os.environ['REEMOTE_PATH']
@@ -348,6 +370,8 @@ class ReemoteTCPIPWrapper(object):
                     output = self.get_instant_values()
                 elif self.option == 'pt':
                     output = self.get_power_and_tariff_info()
+                elif self.option == 'e':
+                    output = self.get_events()
         except Exception as e:
             exception_txt = '{}'.format(e)
             exception = True
@@ -504,6 +528,20 @@ class ReemoteTCPIPWrapper(object):
                 res['updated'] = True
         return res
 
+    def get_events(self):
+        logging.info('Requesting events to device')
+        values = []
+        for event_group in self.event_groups:
+            try:
+                for resp in self.app_layer.read_events(event_group):
+                    values.append(resp)
+            except:
+                logging.info("WARNING: event {} not available".format(event_group))
+        return parse_events(
+            values, self.meter_serial,
+            self.datefrom.strftime('%Y-%m-%d %H:%M:%S'),
+            self.dateto.strftime('%Y-%m-%d %H:%M:%S'))
+
     def get_power_and_tariff_info(self):
         logging.info(
             'Requesting contracted powers and tariff info values to device')
@@ -535,7 +573,7 @@ class ReemoteTCPIPWrapper(object):
         logger.info('Requesting instant values to device')
         instant_objects = ['totalizadores', 'potencias', 'I_V']
         resp = self.app_layer.ext_read_instant_values(objects=instant_objects)
-        return parse_instant_values(resp.content.valores, self.meter_serial)
+        return parse_instant_values(resp.content, self.meter_serial)
 
     def establish_connection(self):
         try:
