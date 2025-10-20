@@ -15,6 +15,7 @@ import iec870ree.ip
 import iec870ree.protocol
 import iec870ree_moxa.moxa
 from iec870ree.events import get_event_description
+from iec870ree.protocol import EVENT_ADDRESS_REGISTERS
 
 TIMEZONE = timezone('Europe/Madrid')
 
@@ -328,7 +329,7 @@ class ReemoteTCPIPWrapper(object):
             else:
                 self.contract = []
             self.delay = delay
-            self.event_groups = (52, 53, 54, 55, 128, 129, 131, 132, 133)
+            self.event_groups = EVENT_ADDRESS_REGISTERS
 
             if 'REEMOTE_PATH' in os.environ:
                 reemote_url = os.environ['REEMOTE_PATH']
@@ -533,7 +534,7 @@ class ReemoteTCPIPWrapper(object):
         values = []
         for event_group in self.event_groups:
             try:
-                for resp in self.app_layer.read_events(event_group):
+                for resp in self.app_layer.read_events(event_group, self.datefrom, self.dateto):
                     values.append(resp)
             except:
                 logging.info("WARNING: event {} not available".format(event_group))
