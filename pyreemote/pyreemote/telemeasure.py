@@ -574,7 +574,7 @@ class ReemoteTCPIPWrapper(object):
         logger.info('Requesting instant values to device')
         instant_objects = ['totalizadores', 'potencias', 'I_V']
         resp = self.app_layer.ext_read_instant_values(objects=instant_objects)
-        return parse_instant_values(resp.content, self.meter_serial)
+        return parse_instant_values(resp.content.valores, self.meter_serial)
 
     def establish_connection(self):
         try:
